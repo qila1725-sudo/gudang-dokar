@@ -257,15 +257,15 @@ tr:last-child td{border-bottom:none;}
 <script>
 /* ============================= DATA (in-memory, session only) ============================= */
 let ITEMS = [
-  {id:'IT-1', kode:'04465-0K140', d1:'Kampas Rem Depan (Brake Pad Front)', d2:'Toyota Innova Reborn / Fortuner VRZ 2016-2023', kategori:'Sistem Rem', satuan:'Set', stok:24, stokMin:8, harga:585000, lokasi:'Rak B-03 Tk.2'},
-  {id:'IT-2', kode:'15601-BZ010', d1:'Filter Oli Mesin (Oil Filter)', d2:'Avanza/Xenia/Rush Dual VVT-i', kategori:'Mesin & Filter', satuan:'Pcs', stok:48, stokMin:20, harga:32500, lokasi:'Rak A-01 Tk.1'},
-  {id:'IT-3', kode:'08880-83389', d1:'Oli Mesin TMO Full Synthetic 10W-40 (Galon 4L)', d2:'Toyota Motor Oil Original', kategori:'Oli & Pelumas', satuan:'Galon', stok:15, stokMin:5, harga:620000, lokasi:'Rak C-01 Palet'},
-  {id:'IT-4', kode:'48530-BZ210', d1:'Shock Absorber Belakang (Rear Damper)', d2:'Daihatsu Xenia / Toyota Avanza Gen 2', kategori:'Suspensi', satuan:'Pcs', stok:3, stokMin:6, harga:345000, lokasi:'Rak D-02 Tk.1'},
-  {id:'IT-5', kode:'SC20HR11', d1:'Busi Mesin Iridium Panjang (Spark Plug)', d2:'Corolla Altis / Vios Gen 3 Dual VVT-i', kategori:'Kelistrikan', satuan:'Pcs', stok:0, stokMin:12, harga:115000, lokasi:'Rak A-03 Tk.3'},
-  {id:'IT-6', kode:'90915-YZZE1', d1:'Filter Oli Mesin Genuine Toyota', d2:'D4D / Dual VVT-i', kategori:'Mesin & Filter', satuan:'Pcs', stok:41, stokMin:15, harga:95000, lokasi:'Rak A-01 Tk.1'},
-  {id:'IT-7', kode:'08887-01266', d1:'Brake Cleaner & Caliper Grease Spray 400ml', d2:'Pembersih residu kampas & pelumas kaliper', kategori:'Chemical', satuan:'Can', stok:7, stokMin:10, harga:185000, lokasi:'Rak D-02 Tk.1'},
-  {id:'IT-8', kode:'SST-SCAN-004', d1:'OBD-II Diagnostic Scanner Launch X431 Pro', d2:'Alat diagnostik komputer ECU', kategori:'SST Tools', satuan:'Unit', stok:1, stokMin:1, harga:4500000, lokasi:'Lemari SST-01', isTool:true},
-  {id:'IT-9', kode:'SST-SUSP-012', d1:'Spring Compressor Hidrolik Heavy Duty 1T', d2:'Alat kompres per suspensi', kategori:'SST Tools', satuan:'Unit', stok:1, stokMin:1, harga:1450000, lokasi:'Rak Khusus D-02', isTool:true},
+  {id:'IT-1', kode:'04465-0K140', d1:'Kampas Rem Depan (Brake Pad Front)', d2:'Toyota Innova Reborn / Fortuner VRZ 2016-2023', kategori:'Sistem Rem', satuan:'Set', stok:24, stokAwal:22, stokMin:8, harga:585000, lokasi:'Rak B-03 Tk.2', lemariKe:'B-03', box:'2'},
+  {id:'IT-2', kode:'15601-BZ010', d1:'Filter Oli Mesin (Oil Filter)', d2:'Avanza/Xenia/Rush Dual VVT-i', kategori:'Mesin & Filter', satuan:'Pcs', stok:48, stokAwal:26, stokMin:20, harga:32500, lokasi:'Rak A-01 Tk.1', lemariKe:'A-01', box:'1'},
+  {id:'IT-3', kode:'08880-83389', d1:'Oli Mesin TMO Full Synthetic 10W-40 (Galon 4L)', d2:'Toyota Motor Oil Original', kategori:'Oli & Pelumas', satuan:'Galon', stok:15, stokAwal:8, stokMin:5, harga:620000, lokasi:'Rak C-01 Palet', lemariKe:'C-01', box:'-'},
+  {id:'IT-4', kode:'48530-BZ210', d1:'Shock Absorber Belakang (Rear Damper)', d2:'Daihatsu Xenia / Toyota Avanza Gen 2', kategori:'Suspensi', satuan:'Pcs', stok:3, stokAwal:5, stokMin:6, harga:345000, lokasi:'Rak D-02 Tk.1', lemariKe:'D-02', box:'1'},
+  {id:'IT-5', kode:'SC20HR11', d1:'Busi Mesin Iridium Panjang (Spark Plug)', d2:'Corolla Altis / Vios Gen 3 Dual VVT-i', kategori:'Kelistrikan', satuan:'Pcs', stok:0, stokAwal:0, stokMin:12, harga:115000, lokasi:'Rak A-03 Tk.3', lemariKe:'A-03', box:'3'},
+  {id:'IT-6', kode:'90915-YZZE1', d1:'Filter Oli Mesin Genuine Toyota', d2:'D4D / Dual VVT-i', kategori:'Mesin & Filter', satuan:'Pcs', stok:41, stokAwal:26, stokMin:15, harga:95000, lokasi:'Rak A-01 Tk.1', lemariKe:'A-01', box:'1'},
+  {id:'IT-7', kode:'08887-01266', d1:'Brake Cleaner & Caliper Grease Spray 400ml', d2:'Pembersih residu kampas & pelumas kaliper', kategori:'Chemical', satuan:'Can', stok:7, stokAwal:8, stokMin:10, harga:185000, lokasi:'Rak D-02 Tk.1', lemariKe:'D-02', box:'1'},
+  {id:'IT-8', kode:'SST-SCAN-004', d1:'OBD-II Diagnostic Scanner Launch X431 Pro', d2:'Alat diagnostik komputer ECU', kategori:'SST Tools', satuan:'Unit', stok:1, stokAwal:1, stokMin:1, harga:4500000, lokasi:'Lemari SST-01', lemariKe:'SST-01', box:'-', isTool:true},
+  {id:'IT-9', kode:'SST-SUSP-012', d1:'Spring Compressor Hidrolik Heavy Duty 1T', d2:'Alat kompres per suspensi', kategori:'SST Tools', satuan:'Unit', stok:1, stokAwal:1, stokMin:1, harga:1450000, lokasi:'Rak Khusus D-02', lemariKe:'D-02', box:'-', isTool:true},
 ];
 
 let MEKANIK = [
@@ -278,7 +278,7 @@ let MEKANIK = [
 ];
 
 let INCOMING = [
-  {id:'IN-0001', tanggal:'2026-09-08', vendor:'PT Astra Otoparts Tbk', invoice:'INV-AO-8849102', items:[{kode:'04465-0K140', qty:10, harga:420000}], total:4200000},
+  {id:'IN-0001', tanggal:'2026-09-08', vendor:'PT Astra Otoparts Tbk', invoice:'INV-AO-8849102', poNo:'PO-DPM-2026-108', items:[{kode:'04465-0K140', qty:10, harga:420000}], total:4200000},
 ];
 let OUTGOING = [
   {id:'OUT-0117', tanggal:'2026-09-10', spk:'SPK-2026-0891', noPol:'B 1928 DKM', tipeMobil:'Toyota Innova Reborn 2.4 G A/T', customer:'PT. Anugerah Logistik Express', mekanikId:'MEK-03', km:68450,
@@ -296,6 +296,8 @@ function fmtDateTime(iso){ if(!iso) return '-'; const d=new Date(iso); return d.
 function rupiah(n){ return 'Rp ' + Math.round(n||0).toLocaleString('id-ID'); }
 function mekanikNama(id){ const m=MEKANIK.find(x=>x.id===id); return m? m.nama : '—'; }
 function findItem(kode){ return ITEMS.find(i=>i.kode.toLowerCase()===String(kode).trim().toLowerCase()); }
+function itemIncomingQty(kode){ let t=0; INCOMING.forEach(tr=>tr.items.forEach(li=>{ if(li.kode.toLowerCase()===kode.toLowerCase()) t+=li.qty; })); return t; }
+function itemOutgoingQty(kode){ let t=0; OUTGOING.forEach(tr=>tr.items.forEach(li=>{ if(li.kode.toLowerCase()===kode.toLowerCase()) t+=li.qty; })); return t; }
 function uid(prefix){ return prefix+'-'+Math.floor(1000+Math.random()*9000); }
 function genBarcode(){ return String(Math.floor(10000+Math.random()*89999))+'-'+String(Math.floor(1000+Math.random()*8999)).slice(0,5).toUpperCase(); }
 
@@ -537,67 +539,225 @@ function quickConfirm(kode, mode){
 }
 function escapeHtml(s){ return String(s).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 
-/* ============================= EXCEL EXPORT / IMPORT ============================= */
+/* ============================= EXCEL EXPORT / IMPORT (format template PT. Dokar Putra Mandiri) ============================= */
+
+// Sheet aman-untuk-array-of-arrays (AOA) supaya baris judul, baris kosong, dan baris header
+// persis meniru struktur file template (baris 1-2 judul, baris 3 kosong, baris 4 header, data mulai baris 5).
+function buildStockSheet(){
+  const aoa = [];
+  aoa.push(['', '', '', '', 'WAREHOUSE STOCK LIST']);
+  aoa.push(['', '', '', '', 'PT. DOKAR PUTRA MANDIRI']);
+  aoa.push([]);
+  aoa.push(['', 'Lemari Ke', 'BOX', '', 'CODE / PART NO', 'DESCRIPTION 1', 'DESCRIPTION 2', 'QTY\n(awal)', 'INCOMING', 'OUTGOING', 'FINAL STOCK', 'REMARK']);
+  ITEMS.forEach(i=>{
+    const masuk = itemIncomingQty(i.kode);
+    const keluar = itemOutgoingQty(i.kode);
+    aoa.push(['', i.lemariKe||'', i.box||'', '', i.kode, i.d1, i.d2||'', (i.stokAwal!=null?i.stokAwal:i.stok), masuk, keluar, i.stok, i.stok<i.stokMin? 'Stok Menipis':'']);
+  });
+  const ws = XLSX.utils.aoa_to_sheet(aoa);
+  ws['!cols'] = [{wch:3},{wch:10},{wch:6},{wch:2},{wch:16},{wch:32},{wch:28},{wch:9},{wch:9},{wch:9},{wch:11},{wch:14}];
+  return ws;
+}
+function buildIncomingSheet(){
+  const aoa = [];
+  aoa.push(['', 'INCOMING LIST']);
+  aoa.push(['', 'PT. DOKAR PUTRA MANDIRI']);
+  aoa.push([]);
+  aoa.push(['', 'Date', 'CODE / PART NO', 'DESRCIPTION1', 'DESCRIPTION 2', 'QTY', 'Harga Satuan', 'Total', 'PPN 11%', 'Total Harga Sdh PPN ', 'VENDOR NAME', 'VENDOR INVOICE', 'DPM PO NO.']);
+  INCOMING.forEach(tr=>{
+    tr.items.forEach(li=>{
+      const it=findItem(li.kode);
+      const total = li.qty*li.harga;
+      const ppn = Math.round(total*0.11);
+      aoa.push(['', tr.tanggal, li.kode, it?it.d1:'KODE TIDAK DITEMUKAN', it?it.d2||'':'', li.qty, li.harga, total, ppn, total+ppn, tr.vendor, tr.invoice, tr.poNo||'']);
+    });
+  });
+  const ws = XLSX.utils.aoa_to_sheet(aoa);
+  ws['!cols'] = [{wch:3},{wch:12},{wch:16},{wch:26},{wch:24},{wch:6},{wch:12},{wch:12},{wch:12},{wch:16},{wch:22},{wch:16},{wch:16}];
+  return ws;
+}
+function buildOutgoingSheet(){
+  const aoa = [];
+  aoa.push(['', 'OUTGOING LIST']);
+  aoa.push(['', 'PT. DOKAR PUTRA MANDIRI']);
+  aoa.push([]);
+  aoa.push(['', 'DATE', 'CODE / PART NO', 'DESCRIPTION 1', 'DESCRIPTION 2', 'QTY', 'SPK', 'NO POL', 'TYPE MOBIL', 'CUSTOMER', 'PENGGUNA (Mekanik)', 'KM']);
+  OUTGOING.forEach(tr=>{
+    tr.items.forEach(li=>{
+      const it=findItem(li.kode);
+      aoa.push(['', tr.tanggal, li.kode, it?it.d1:'KODE TIDAK DITEMUKAN', it?it.d2||'':'', li.qty, tr.spk, tr.noPol, tr.tipeMobil, tr.customer, mekanikNama(tr.mekanikId), tr.km]);
+    });
+  });
+  const ws = XLSX.utils.aoa_to_sheet(aoa);
+  ws['!cols'] = [{wch:3},{wch:12},{wch:16},{wch:28},{wch:22},{wch:6},{wch:14},{wch:12},{wch:26},{wch:24},{wch:18},{wch:9}];
+  return ws;
+}
 function exportItemsExcel(){
-  const rows = ITEMS.map(i=>({
-    'CODE / PART NO': i.kode, 'DESCRIPTION 1': i.d1, 'DESCRIPTION 2': i.d2, 'KATEGORI': i.kategori,
-    'SATUAN': i.satuan, 'QTY (STOK SAAT INI)': i.stok, 'STOK MINIMUM': i.stokMin, 'HARGA SATUAN': i.harga, 'LOKASI RAK': i.lokasi
-  }));
-  downloadExcel(rows, 'Warehouse_Stock_List', 'Stok Gudang');
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, buildStockSheet(), 'STOCK LIST');
+  XLSX.writeFile(wb, 'WAREHOUSE_STOCK_LIST.xlsx');
+  toast('📥 File Excel berhasil diunduh: WAREHOUSE_STOCK_LIST.xlsx','ok');
 }
 function exportIncomingExcel(){
-  const rows=[];
-  INCOMING.forEach(tr=> tr.items.forEach(li=>{
-    const it=findItem(li.kode);
-    rows.push({'Date':tr.tanggal,'CODE / PART NO':li.kode,'DESCRIPTION1':it?it.d1:'','DESCRIPTION 2':it?it.d2:'','QTY':li.qty,'Harga Satuan':li.harga,'Total':li.qty*li.harga,'VENDOR NAME':tr.vendor,'VENDOR INVOICE':tr.invoice});
-  }));
-  downloadExcel(rows, 'Incoming_List', 'Barang Masuk');
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, buildIncomingSheet(), 'INCOMING');
+  XLSX.writeFile(wb, 'INCOMING_LIST.xlsx');
+  toast('📥 File Excel berhasil diunduh: INCOMING_LIST.xlsx','ok');
 }
 function exportOutgoingExcel(){
-  const rows=[];
-  OUTGOING.forEach(tr=> tr.items.forEach(li=>{
-    const it=findItem(li.kode);
-    rows.push({'DATE':tr.tanggal,'CODE / PART NO':li.kode,'DESCRIPTION 1':it?it.d1:'','QTY':li.qty,'SPK':tr.spk,'NO POL':tr.noPol,'TYPE MOBIL':tr.tipeMobil,'CUSTOMER':tr.customer,'PENGGUNA (Mekanik)':mekanikNama(tr.mekanikId),'KM':tr.km});
-  }));
-  downloadExcel(rows, 'Outgoing_List', 'Barang Keluar');
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, buildOutgoingSheet(), 'OUTGOING');
+  XLSX.writeFile(wb, 'OUTGOING_LIST.xlsx');
+  toast('📥 File Excel berhasil diunduh: OUTGOING_LIST.xlsx','ok');
+}
+// Ekspor gabungan 3 sheet dalam SATU file, persis seperti format MASTER_STOCK_LIST.xlsx yang dipakai bengkel.
+function exportMasterTemplateExcel(){
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, buildStockSheet(), 'STOCK LIST');
+  XLSX.utils.book_append_sheet(wb, buildIncomingSheet(), 'INCOMING');
+  XLSX.utils.book_append_sheet(wb, buildOutgoingSheet(), 'OUTGOING');
+  XLSX.writeFile(wb, 'MASTER_STOCK_LIST.xlsx');
+  toast('📥 File Excel berhasil diunduh: MASTER_STOCK_LIST.xlsx (3 sheet)','ok');
 }
 function exportBorrowExcel(){
   const rows = BORROWS.map(b=>{
     const it=findItem(b.kode);
     return {'No Transaksi':b.id,'Barcode':b.kode,'Nama Alat':it?it.d1:'','Dipinjam Oleh':mekanikNama(b.mekanikAmbilId),'Waktu Ambil':fmtDateTime(b.waktuAmbil),'Dikembalikan Oleh':b.mekanikKembaliId?mekanikNama(b.mekanikKembaliId):'-','Waktu Kembali':b.waktuKembali?fmtDateTime(b.waktuKembali):'-','Status':b.status};
   });
-  downloadExcel(rows, 'Peminjaman_Alat', 'Peminjaman & Kembali');
-}
-function downloadExcel(rows, filename, sheetName){
   if(!rows.length){ toast('Tidak ada data untuk diekspor','err'); return; }
   const ws = XLSX.utils.json_to_sheet(rows);
   const wb = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb, ws, sheetName.slice(0,31));
-  XLSX.writeFile(wb, filename+'.xlsx');
-  toast('📥 File Excel berhasil diunduh: '+filename+'.xlsx','ok');
+  XLSX.utils.book_append_sheet(wb, ws, 'Peminjaman & Kembali'.slice(0,31));
+  XLSX.writeFile(wb, 'Peminjaman_Alat.xlsx');
+  toast('📥 File Excel berhasil diunduh: Peminjaman_Alat.xlsx','ok');
 }
-function importItemsExcel(fileInput){
+
+// ---- Import: baca file dengan format template (header boleh ada di baris berapa saja,
+// terdeteksi otomatis dengan mencari baris yang mengandung "CODE / PART NO"). ----
+function normHeader(s){ return String(s==null?'':s).replace(/\n/g,' ').replace(/\s+/g,' ').trim().toLowerCase(); }
+function findHeaderRow(aoa, mustContain){
+  for(let r=0;r<aoa.length;r++){
+    const cells = (aoa[r]||[]).map(normHeader);
+    if(cells.some(c=>c.includes(mustContain))) return r;
+  }
+  return -1;
+}
+function colMapFromHeader(headerRow){
+  const map={};
+  headerRow.forEach((c,idx)=>{ const n=normHeader(c); if(n) map[n]=idx; });
+  return map;
+}
+function pick(map, row, ...candidates){
+  for(const c of candidates){ if(map[c]!=null && row[map[c]]!=null && row[map[c]]!=='') return row[map[c]]; }
+  return '';
+}
+
+function importTemplateExcel(fileInput){
   const file = fileInput.files[0];
   if(!file) return;
   const reader = new FileReader();
   reader.onload = e=>{
     try{
       const wb = XLSX.read(e.target.result, {type:'array'});
-      const ws = wb.Sheets[wb.SheetNames[0]];
-      const json = XLSX.utils.sheet_to_json(ws, {defval:''});
-      let added=0, updated=0;
-      json.forEach(row=>{
-        const kode = row['CODE / PART NO'] || row['CODE/PART NO'] || row['Kode'] || row['kode'];
-        if(!kode) return;
-        const d1 = row['DESCRIPTION 1'] || row['Deskripsi 1'] || '';
-        const d2 = row['DESCRIPTION 2'] || row['Deskripsi 2'] || '';
-        const qty = parseFloat(row['QTY (STOK SAAT INI)'] || row['QTY (awal)'] || row['QTY'] || row['Qty'] || 0) || 0;
-        let existing = findItem(kode);
-        if(existing){ existing.stok = qty || existing.stok; existing.d1 = d1||existing.d1; existing.d2 = d2||existing.d2; updated++; }
-        else{ ITEMS.push({id:uid('IT'), kode:String(kode), d1:d1||String(kode), d2, kategori:row['KATEGORI']||row['Kategori']||'Umum', satuan:row['SATUAN']||row['Satuan']||'Pcs', stok:qty, stokMin:parseFloat(row['STOK MINIMUM']||5)||5, harga:parseFloat(row['HARGA SATUAN']||row['Harga Satuan']||0)||0, lokasi:row['LOKASI RAK']||''}); added++; }
-      });
-      toast(`✅ Import selesai: ${added} barang baru, ${updated} diperbarui`,'ok');
-      navigate('barang');
+      let addedItem=0, updatedItem=0, addedIn=0, addedOut=0;
+
+      // --- Sheet Stok (nama sheet mengandung "stock") ---
+      const stockSheetName = wb.SheetNames.find(n=>/stock/i.test(n));
+      if(stockSheetName){
+        const aoa = XLSX.utils.sheet_to_json(wb.Sheets[stockSheetName], {header:1, defval:''});
+        const hRow = findHeaderRow(aoa, 'code / part no');
+        if(hRow>=0){
+          const map = colMapFromHeader(aoa[hRow]);
+          for(let r=hRow+1; r<aoa.length; r++){
+            const row = aoa[r]; if(!row || !row.length) continue;
+            const kode = pick(map,row,'code / part no');
+            if(!kode) continue;
+            const d1 = pick(map,row,'description 1');
+            const d2 = pick(map,row,'description 2');
+            const stokAwal = parseFloat(pick(map,row,'qty (awal)','qty awal','qty'))||0;
+            const masuk = parseFloat(pick(map,row,'incoming'))||0;
+            const keluar = parseFloat(pick(map,row,'outgoing'))||0;
+            let finalStock = pick(map,row,'final stock');
+            finalStock = finalStock===''? (stokAwal+masuk-keluar) : parseFloat(finalStock)||0;
+            const lemariKe = pick(map,row,'lemari ke');
+            const box = pick(map,row,'box');
+            let existing = findItem(kode);
+            if(existing){
+              existing.stok = finalStock; existing.stokAwal = stokAwal;
+              existing.d1 = d1||existing.d1; existing.d2 = d2||existing.d2;
+              existing.lemariKe = lemariKe||existing.lemariKe; existing.box = box||existing.box;
+              updatedItem++;
+            } else {
+              ITEMS.push({id:uid('IT'), kode:String(kode), d1:d1||String(kode), d2, kategori:'Umum', satuan:'Pcs', stok:finalStock, stokAwal, stokMin:5, harga:0, lokasi:[lemariKe,box].filter(Boolean).join(' / '), lemariKe, box});
+              addedItem++;
+            }
+          }
+        }
+      }
+
+      // --- Sheet Incoming (opsional, kalau ada di file yang sama) ---
+      const inSheetName = wb.SheetNames.find(n=>/incoming/i.test(n));
+      if(inSheetName){
+        const aoa = XLSX.utils.sheet_to_json(wb.Sheets[inSheetName], {header:1, defval:''});
+        const hRow = findHeaderRow(aoa, 'code / part no');
+        if(hRow>=0){
+          const map = colMapFromHeader(aoa[hRow]);
+          for(let r=hRow+1; r<aoa.length; r++){
+            const row=aoa[r]; if(!row || !row.length) continue;
+            const kode = pick(map,row,'code / part no'); if(!kode) continue;
+            const qty = parseFloat(pick(map,row,'qty'))||0; if(!qty) continue;
+            const harga = parseFloat(pick(map,row,'harga satuan'))||0;
+            INCOMING.unshift({
+              id:uid('IN'),
+              tanggal: pick(map,row,'date')||new Date().toISOString().slice(0,10),
+              vendor: pick(map,row,'vendor name')||'-',
+              invoice: pick(map,row,'vendor invoice')||'-',
+              poNo: pick(map,row,'dpm po no.')||'-',
+              items:[{kode:String(kode), qty, harga}],
+              total: qty*harga
+            });
+            addedIn++;
+          }
+        }
+      }
+
+      // --- Sheet Outgoing (opsional) ---
+      const outSheetName = wb.SheetNames.find(n=>/outgoing/i.test(n));
+      if(outSheetName){
+        const aoa = XLSX.utils.sheet_to_json(wb.Sheets[outSheetName], {header:1, defval:''});
+        const hRow = findHeaderRow(aoa, 'code / part no');
+        if(hRow>=0){
+          const map = colMapFromHeader(aoa[hRow]);
+          for(let r=hRow+1; r<aoa.length; r++){
+            const row=aoa[r]; if(!row || !row.length) continue;
+            const kode = pick(map,row,'code / part no'); if(!kode) continue;
+            const qty = parseFloat(pick(map,row,'qty'))||0; if(!qty) continue;
+            const it = findItem(kode);
+            const mekNamaStr = pick(map,row,'pengguna (mekanik)');
+            const mek = MEKANIK.find(m=>m.nama.toLowerCase()===String(mekNamaStr).toLowerCase());
+            OUTGOING.unshift({
+              id:uid('OUT'),
+              tanggal: pick(map,row,'date')||new Date().toISOString().slice(0,10),
+              spk: pick(map,row,'spk')||'-',
+              noPol: pick(map,row,'no pol')||'-',
+              tipeMobil: pick(map,row,'type mobil')||'-',
+              customer: pick(map,row,'customer')||'-',
+              mekanikId: mek? mek.id : null,
+              km: parseFloat(pick(map,row,'km'))||0,
+              items:[{kode:String(kode), qty, harga: it?it.harga:0}],
+              total: qty*(it?it.harga:0)
+            });
+            addedOut++;
+          }
+        }
+      }
+
+      if(!addedItem && !updatedItem && !addedIn && !addedOut){
+        toast('❌ Tidak ditemukan data yang sesuai format template. Pastikan header "CODE / PART NO" ada di sheet.','err');
+      } else {
+        toast(`✅ Import selesai — Stok: ${addedItem} baru/${updatedItem} update, Incoming: ${addedIn} baris, Outgoing: ${addedOut} baris`,'ok');
+      }
+      navigate(CURRENT_VIEW==='laporan'?'laporan':'barang');
     }catch(err){ toast('❌ Gagal membaca file Excel: '+err.message,'err'); }
   };
   reader.readAsArrayBuffer(file);
@@ -674,16 +834,16 @@ function renderBarang(){
   document.getElementById('view-root').innerHTML = `
     <div class="crumbs">Sistem Gudang / Master Data</div>
     <h1 class="page-title">Master Data Barang &amp; Barcode</h1>
-    <p class="page-desc">Kelola katalog suku cadang, lokasi rak, ambang batas stok minimum, dan cetak label barcode.</p>
+    <p class="page-desc">Kelola katalog suku cadang, lokasi Lemari/BOX, ambang batas stok minimum, dan cetak label barcode. Format Excel mengikuti template MASTER STOCK LIST bengkel.</p>
     <div class="toolbar">
       <button class="btn btn-primary" onclick="openItemModal()">+ Tambah Part Baru</button>
-      <button class="btn" onclick="exportItemsExcel()">⬇️ Export .xlsx</button>
-      <label class="btn" style="margin:0;">⬆️ Import Excel<input type="file" accept=".xlsx,.xls,.csv" style="display:none" onchange="importItemsExcel(this)"></label>
+      <button class="btn" onclick="exportItemsExcel()">⬇️ Export .xlsx (Format Template)</button>
+      <label class="btn" style="margin:0;">⬆️ Import Excel (Format Template)<input type="file" accept=".xlsx,.xls,.csv" style="display:none" onchange="importTemplateExcel(this)"></label>
       <button class="btn" onclick="openQuickScanMode('keluar')">🔍 Cari via Scan</button>
     </div>
     <div class="card">
       <div class="table-wrap"><table>
-        <thead><tr><th>Part No &amp; Barcode</th><th>Deskripsi</th><th>Kategori</th><th>Lokasi Rak</th><th>Stok</th><th>Harga</th><th>Aksi</th></tr></thead>
+        <thead><tr><th>Part No &amp; Barcode</th><th>Deskripsi</th><th>Lemari Ke</th><th>BOX</th><th>Qty Awal</th><th>Stok Akhir</th><th>Harga</th><th>Aksi</th></tr></thead>
         <tbody id="itemsTbody"></tbody>
       </table></div>
     </div>
@@ -697,8 +857,9 @@ function renderItemsTable(){
     return `<tr>
       <td><span class="code-chip">${i.kode}</span></td>
       <td><div class="desc-primary">${i.d1}</div><div class="desc-secondary">${i.d2||''}</div></td>
-      <td>${i.kategori}</td>
-      <td>${i.lokasi||'-'}</td>
+      <td>${i.lemariKe||'-'}</td>
+      <td>${i.box||'-'}</td>
+      <td>${i.stokAwal!=null?i.stokAwal:'-'}</td>
       <td>${i.stok} ${i.satuan} ${status}</td>
       <td>${rupiah(i.harga)}</td>
       <td>
@@ -706,7 +867,7 @@ function renderItemsTable(){
         <button class="btn btn-sm" onclick="printLabel('${i.id}')">🏷️ Label</button>
       </td>
     </tr>`;
-  }).join('') || `<tr><td colspan="7" class="empty">Belum ada data barang</td></tr>`;
+  }).join('') || `<tr><td colspan="8" class="empty">Belum ada data barang</td></tr>`;
 }
 function openItemModal(id){
   const item = id ? ITEMS.find(i=>i.id===id) : null;
@@ -719,16 +880,20 @@ function openItemModal(id){
       <div class="field"><label>Deskripsi 1 (Nama Komponen) *</label><input id="fD1" value="${item?item.d1:''}" placeholder="Contoh: Oli Mesin Diesel 5W-30"></div>
       <div class="field"><label>Deskripsi 2 (Spesifikasi/Kendaraan)</label><input id="fD2" value="${item?item.d2||'':''}" placeholder="Contoh: Cocok untuk Innova Diesel 2GD"></div>
       <div class="field-row">
+        <div class="field"><label>Lemari Ke</label><input id="fLemariKe" value="${item?item.lemariKe||'':''}" placeholder="Contoh: A-01"></div>
+        <div class="field"><label>BOX</label><input id="fBox" value="${item?item.box||'':''}" placeholder="Contoh: 2"></div>
+      </div>
+      <div class="field-row">
         <div class="field"><label>Kategori</label><input id="fKategori" value="${item?item.kategori:'Umum'}"></div>
         <div class="field"><label>Satuan</label><input id="fSatuan" value="${item?item.satuan:'Pcs'}"></div>
       </div>
       <div class="field-row">
-        <div class="field"><label>Stok Saat Ini</label><input id="fStok" type="number" value="${item?item.stok:0}"></div>
-        <div class="field"><label>Stok Minimum (Alert)</label><input id="fStokMin" type="number" value="${item?item.stokMin:5}"></div>
+        <div class="field"><label>QTY (awal)</label><input id="fStokAwal" type="number" value="${item&&item.stokAwal!=null?item.stokAwal:0}"></div>
+        <div class="field"><label>Stok Akhir Saat Ini</label><input id="fStok" type="number" value="${item?item.stok:0}"></div>
       </div>
       <div class="field-row">
+        <div class="field"><label>Stok Minimum (Alert)</label><input id="fStokMin" type="number" value="${item?item.stokMin:5}"></div>
         <div class="field"><label>Harga Satuan (Rp)</label><input id="fHarga" type="number" value="${item?item.harga:0}"></div>
-        <div class="field"><label>Lokasi Rak</label><input id="fLokasi" value="${item?item.lokasi||'':''}" placeholder="Rak A-01 Tk.1"></div>
       </div>
       <div class="checkbox-row"><input type="checkbox" id="fIsTool" ${item&&item.isTool?'checked':''}><label style="margin:0;" for="fIsTool">Ini adalah alat kerja / SST (butuh peminjaman-pengembalian)</label></div>
     </div>
@@ -742,14 +907,18 @@ function saveItem(id){
   const kode=document.getElementById('fKode').value.trim();
   const d1=document.getElementById('fD1').value.trim();
   if(!kode || !d1){ toast('Kode dan Deskripsi wajib diisi','err'); return; }
+  const lemariKe=document.getElementById('fLemariKe').value.trim();
+  const box=document.getElementById('fBox').value.trim();
   const data = {
     kode, d1, d2:document.getElementById('fD2').value.trim(),
     kategori:document.getElementById('fKategori').value.trim()||'Umum',
     satuan:document.getElementById('fSatuan').value.trim()||'Pcs',
+    stokAwal:parseFloat(document.getElementById('fStokAwal').value)||0,
     stok:parseFloat(document.getElementById('fStok').value)||0,
     stokMin:parseFloat(document.getElementById('fStokMin').value)||5,
     harga:parseFloat(document.getElementById('fHarga').value)||0,
-    lokasi:document.getElementById('fLokasi').value.trim(),
+    lemariKe, box,
+    lokasi:[lemariKe,box].filter(Boolean).join(' / '),
     isTool:document.getElementById('fIsTool').checked
   };
   if(id){ Object.assign(ITEMS.find(i=>i.id===id), data); toast('✅ Data barang diperbarui','ok'); }
@@ -791,7 +960,8 @@ function renderMasuk(){
           <div class="field"><label>Tanggal</label><input type="date" id="mTanggal" value="${new Date().toISOString().slice(0,10)}"></div>
           <div class="field"><label>Nama Vendor</label><input id="mVendor" placeholder="PT Astra Otoparts Tbk"></div>
         </div>
-        <div class="field"><label>No. Invoice / PO Vendor</label><input id="mInvoice" placeholder="INV-XXXX"></div>
+        <div class="field"><label>No. Invoice Vendor</label><input id="mInvoice" placeholder="INV-XXXX"></div>
+        <div class="field"><label>No. PO (DPM PO NO.)</label><input id="mPoNo" placeholder="PO-DPM-2026-XXX"></div>
         <div class="field"><label>Scan / Cari Barcode Barang</label>
           <div class="manual-scan-row">
             <input id="mScanInput" placeholder="Ketik atau scan kode barang">
@@ -834,7 +1004,7 @@ function renderMasukCart(){
 function saveMasuk(){
   if(!masukCart.length){ toast('Tambahkan minimal 1 barang','err'); return; }
   const total = masukCart.reduce((s,li)=>s+li.qty*li.harga,0);
-  INCOMING.unshift({id:uid('IN'), tanggal:document.getElementById('mTanggal').value, vendor:document.getElementById('mVendor').value||'-', invoice:document.getElementById('mInvoice').value||'-', items:[...masukCart], total});
+  INCOMING.unshift({id:uid('IN'), tanggal:document.getElementById('mTanggal').value, vendor:document.getElementById('mVendor').value||'-', invoice:document.getElementById('mInvoice').value||'-', poNo:document.getElementById('mPoNo').value||'-', items:[...masukCart], total});
   masukCart.forEach(li=>{ const it=findItem(li.kode); it.stok += li.qty; });
   toast('✅ Barang masuk tersimpan & stok diperbarui','ok');
   navigate('masuk');
@@ -1124,12 +1294,21 @@ function renderLaporan(){
     </div>
 
     <div class="card">
-      <div class="panel-title">Ekspor Data ke Excel</div>
-      <div class="panel-sub">Unduh laporan dalam format .xlsx, kompatibel dengan format sheet lama.</div>
+      <div class="panel-title">📄 Format Template Asli Bengkel (MASTER_STOCK_LIST.xlsx)</div>
+      <div class="panel-sub">Satu file Excel berisi 3 sheet (STOCK LIST, INCOMING, OUTGOING) — persis format yang biasa dipakai bengkel.</div>
       <div class="toolbar">
-        <button class="btn btn-dark" onclick="exportItemsExcel()">⬇️ Warehouse Stock List</button>
-        <button class="btn btn-dark" onclick="exportIncomingExcel()">⬇️ Incoming List</button>
-        <button class="btn btn-dark" onclick="exportOutgoingExcel()">⬇️ Outgoing List</button>
+        <button class="btn btn-primary" onclick="exportMasterTemplateExcel()">⬇️ Export MASTER_STOCK_LIST.xlsx (3 Sheet)</button>
+        <label class="btn" style="margin:0;">⬆️ Import dari MASTER_STOCK_LIST.xlsx<input type="file" accept=".xlsx,.xls,.csv" style="display:none" onchange="importTemplateExcel(this)"></label>
+      </div>
+    </div>
+
+    <div class="card" style="margin-top:14px;">
+      <div class="panel-title">Ekspor per Sheet</div>
+      <div class="panel-sub">Unduh masing-masing sheet secara terpisah kalau hanya butuh salah satu.</div>
+      <div class="toolbar">
+        <button class="btn btn-dark" onclick="exportItemsExcel()">⬇️ STOCK LIST</button>
+        <button class="btn btn-dark" onclick="exportIncomingExcel()">⬇️ INCOMING</button>
+        <button class="btn btn-dark" onclick="exportOutgoingExcel()">⬇️ OUTGOING</button>
         <button class="btn btn-dark" onclick="exportBorrowExcel()">⬇️ Peminjaman Alat</button>
       </div>
     </div>
@@ -1137,10 +1316,11 @@ function renderLaporan(){
     <div class="card" style="margin-top:14px;">
       <div class="panel-title">Mutasi Kartu Stok</div>
       <div class="table-wrap"><table>
-        <thead><tr><th>Part No &amp; Barcode</th><th>Kategori</th><th>Lokasi Rak</th><th>Stok Akhir</th><th>Total Valuasi</th></tr></thead>
-        <tbody>${ITEMS.map(i=>`<tr><td><div class="desc-primary">${i.d1}</div><span class="code-chip">${i.kode}</span></td><td>${i.kategori}</td><td>${i.lokasi||'-'}</td><td>${i.stok} ${i.satuan}</td><td>${rupiah(i.stok*i.harga)}</td></tr>`).join('')}</tbody>
+        <thead><tr><th>Part No &amp; Barcode</th><th>Lemari / BOX</th><th>Qty Awal</th><th>Masuk</th><th>Keluar</th><th>Stok Akhir</th><th>Total Valuasi</th></tr></thead>
+        <tbody>${ITEMS.map(i=>`<tr><td><div class="desc-primary">${i.d1}</div><span class="code-chip">${i.kode}</span></td><td>${i.lemariKe||'-'} / ${i.box||'-'}</td><td>${i.stokAwal!=null?i.stokAwal:'-'}</td><td>${itemIncomingQty(i.kode)}</td><td>${itemOutgoingQty(i.kode)}</td><td>${i.stok} ${i.satuan}</td><td>${rupiah(i.stok*i.harga)}</td></tr>`).join('')}</tbody>
       </table></div>
     </div>
+
   `;
 }
 
