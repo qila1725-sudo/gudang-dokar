@@ -1,0 +1,1477 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+<title>Gudang Sparepart — PT. Dokar Putra Mandiri</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#C1440E">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Gudang Dokar">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="icon" href="icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.6/dist/JsBarcode.all.min.js"></script>
+<script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+<style>
+:root{
+  --bg:#F3F4F6; --panel:#FFFFFF; --ink:#1B2430; --ink-soft:#68707C; --line:#E4E7EB;
+  --accent:#C1440E; --accent-dark:#9A350D; --accent-dark2:#8E360C; --accent-soft:#FBEAE1;
+  --success:#1F8A4C; --success-soft:#E5F5EA; --warning:#B5720A; --warning-soft:#FCF0DA;
+  --danger:#C0392B; --danger-soft:#FBE6E3; --sidebar:#171E2B; --sidebar-soft:#232C3D;
+  --radius:10px;
+}
+*{box-sizing:border-box;}
+html,body{margin:0;padding:0;}
+body{
+  font-family:'Inter',system-ui,sans-serif; background:var(--bg); color:var(--ink);
+  -webkit-font-smoothing:antialiased;
+}
+.mono{font-family:'IBM Plex Mono',monospace;}
+button{font-family:inherit; cursor:pointer;}
+input,select,textarea{font-family:inherit;}
+a{color:inherit;}
+
+/* ---------- layout ---------- */
+#app{display:flex; min-height:100vh;}
+.sidebar{
+  width:238px; flex-shrink:0; background:var(--sidebar); color:#C9D0DC;
+  display:flex; flex-direction:column; position:fixed; top:0; left:0; bottom:0; z-index:60;
+  transition:transform .25s ease;
+}
+.sidebar-brand{padding:20px 18px 14px; border-bottom:1px solid #2A3446;}
+.sidebar-brand .name{font-weight:800; font-size:16px; color:#fff; letter-spacing:.2px;}
+.sidebar-brand .sub{font-size:11.5px; color:#8891A0; margin-top:2px;}
+.sidebar-scan{margin:14px 14px 6px; background:var(--accent); color:#fff; border:none; border-radius:8px;
+  padding:11px 12px; font-weight:700; font-size:13px; display:flex; align-items:center; gap:8px; justify-content:center;}
+.sidebar-scan:hover{background:var(--accent-dark2);}
+.nav{flex:1; overflow-y:auto; padding:8px 10px;}
+.nav-item{
+  display:flex; align-items:center; gap:10px; padding:10px 12px; border-radius:8px; font-size:13.5px;
+  color:#AEB6C4; margin-bottom:2px; font-weight:500; position:relative;
+}
+.nav-item:hover{background:var(--sidebar-soft); color:#fff;}
+.nav-item.active{background:var(--accent-soft); color:var(--accent-dark2); background:rgba(193,68,14,.16); color:#fff;}
+.nav-item.active::before{content:""; position:absolute; left:-10px; top:8px; bottom:8px; width:3px; background:var(--accent); border-radius:3px;}
+.nav-icon{width:17px; text-align:center; font-size:14px;}
+.nav-badge{margin-left:auto; background:var(--accent); color:#fff; font-size:10.5px; font-weight:700; padding:1px 6px; border-radius:20px;}
+.sidebar-foot{padding:14px 18px; border-top:1px solid #2A3446; font-size:12px; color:#8891A0;}
+
+.main{margin-left:238px; flex:1; min-width:0; display:flex; flex-direction:column;}
+.topbar{
+  background:var(--panel); border-bottom:1px solid var(--line); padding:12px 22px; display:flex; align-items:center;
+  gap:14px; position:sticky; top:0; z-index:40;
+}
+.hamburger{display:none; background:none; border:1px solid var(--line); border-radius:8px; width:36px; height:36px; align-items:center; justify-content:center; font-size:16px;}
+.search-box{flex:1; max-width:420px; display:flex; align-items:center; gap:8px; background:var(--bg); border:1px solid var(--line);
+  border-radius:8px; padding:8px 12px; color:var(--ink-soft); font-size:13px;}
+.topbar-spacer{flex:1;}
+.btn{
+  border:1px solid var(--line); background:var(--panel); color:var(--ink); border-radius:8px; padding:9px 14px;
+  font-size:13px; font-weight:600; display:inline-flex; align-items:center; gap:7px; white-space:nowrap;
+}
+.btn:hover{border-color:#c7ccd3;}
+.btn-primary{background:var(--accent); border-color:var(--accent); color:#fff;}
+.btn-primary:hover{background:var(--accent-dark2); border-color:var(--accent-dark2);}
+.btn-dark{background:var(--sidebar); border-color:var(--sidebar); color:#fff;}
+.btn-ghost{background:transparent; border-color:transparent;}
+.btn-sm{padding:6px 10px; font-size:12px;}
+.btn-danger{background:var(--danger-soft); border-color:var(--danger-soft); color:var(--danger);}
+.icon-btn{width:36px; height:36px; border-radius:8px; border:1px solid var(--line); background:var(--panel); display:flex; align-items:center; justify-content:center; font-size:15px;}
+.user-chip{display:flex; align-items:center; gap:9px;}
+.user-avatar{width:32px; height:32px; border-radius:50%; background:var(--accent-soft); color:var(--accent-dark2); display:flex; align-items:center; justify-content:center; font-weight:700; font-size:12.5px;}
+.user-meta .n{font-size:12.5px; font-weight:700;}
+.user-meta .r{font-size:11px; color:var(--ink-soft);}
+
+.view{padding:22px; max-width:1360px; width:100%; margin:0 auto;}
+.crumbs{font-size:11.5px; color:var(--ink-soft); text-transform:uppercase; letter-spacing:.4px; margin-bottom:6px;}
+h1.page-title{font-size:25px; margin:0 0 4px; font-weight:800;}
+.page-desc{color:var(--ink-soft); font-size:13.5px; margin:0 0 18px; max-width:720px;}
+.toolbar{display:flex; gap:8px; flex-wrap:wrap; margin-bottom:16px;}
+
+.grid{display:grid; gap:14px;}
+.grid-4{grid-template-columns:repeat(4,1fr);}
+.grid-3{grid-template-columns:repeat(3,1fr);}
+.grid-2{grid-template-columns:repeat(2,1fr);}
+@media(max-width:1100px){.grid-4{grid-template-columns:repeat(2,1fr);} .grid-3{grid-template-columns:repeat(1,1fr);}}
+
+.card{background:var(--panel); border:1px solid var(--line); border-radius:var(--radius); padding:16px;}
+.stat-card .label{font-size:11px; color:var(--ink-soft); text-transform:uppercase; letter-spacing:.4px; font-weight:700; margin-bottom:8px;}
+.stat-card .value{font-size:24px; font-weight:800; line-height:1.1;}
+.stat-card .foot{font-size:12px; color:var(--ink-soft); margin-top:6px;}
+.stat-card.warn{border-color:#F0D3A8; background:var(--warning-soft);}
+.stat-card.warn .value{color:var(--warning);}
+.stat-card.danger{border-color:#F0C4BC; background:var(--danger-soft);}
+.stat-card.danger .value{color:var(--danger);}
+.stat-card.good{border-color:#BEE3CC; background:var(--success-soft);}
+.stat-card.good .value{color:var(--success);}
+
+.panel-title{font-size:15px; font-weight:800; margin:0 0 2px;}
+.panel-sub{font-size:12.5px; color:var(--ink-soft); margin:0 0 14px;}
+
+table{width:100%; border-collapse:collapse; font-size:13px;}
+th{text-align:left; font-size:11px; text-transform:uppercase; letter-spacing:.3px; color:var(--ink-soft); font-weight:700; padding:10px 10px; border-bottom:2px solid var(--line); white-space:nowrap;}
+td{padding:11px 10px; border-bottom:1px solid var(--line); vertical-align:middle;}
+tr:last-child td{border-bottom:none;}
+.table-wrap{overflow-x:auto;}
+.desc-primary{font-weight:600;}
+.desc-secondary{font-size:11.5px; color:var(--ink-soft);}
+.code-chip{font-family:'IBM Plex Mono',monospace; background:var(--bg); border:1px solid var(--line); padding:3px 7px; border-radius:6px; font-size:11.5px; font-weight:600;}
+
+.badge{display:inline-flex; align-items:center; gap:4px; font-size:11px; font-weight:700; padding:3px 9px; border-radius:20px;}
+.badge-good{background:var(--success-soft); color:var(--success);}
+.badge-warn{background:var(--warning-soft); color:var(--warning);}
+.badge-danger{background:var(--danger-soft); color:var(--danger);}
+.badge-neutral{background:var(--bg); color:var(--ink-soft); border:1px solid var(--line);}
+
+.empty{text-align:center; padding:40px 20px; color:var(--ink-soft);}
+.empty .big{font-size:32px; margin-bottom:8px;}
+
+/* ---------- modal ---------- */
+.overlay{position:fixed; inset:0; background:rgba(15,18,25,.55); display:none; align-items:flex-start; justify-content:center; z-index:100; padding:26px 14px; overflow-y:auto;}
+.overlay.show{display:flex;}
+.modal{background:var(--panel); border-radius:14px; width:100%; max-width:560px; padding:0; overflow:hidden;}
+.modal.wide{max-width:760px;}
+.modal-head{display:flex; align-items:center; justify-content:space-between; padding:16px 20px; border-bottom:1px solid var(--line);}
+.modal-head h3{margin:0; font-size:16px; font-weight:800;}
+.modal-body{padding:20px; max-height:74vh; overflow-y:auto;}
+.modal-foot{padding:14px 20px; border-top:1px solid var(--line); display:flex; justify-content:flex-end; gap:8px;}
+.close-x{background:none; border:none; font-size:18px; color:var(--ink-soft); width:30px; height:30px; border-radius:8px;}
+.close-x:hover{background:var(--bg);}
+
+.field{margin-bottom:14px;}
+.field label{display:block; font-size:12.5px; font-weight:700; margin-bottom:6px; color:var(--ink);}
+.field .hint{font-size:11px; color:var(--ink-soft); margin-top:4px;}
+.field input,.field select,.field textarea{
+  width:100%; padding:10px 12px; border:1px solid var(--line); border-radius:8px; font-size:13.5px; background:#fff; color:var(--ink);
+}
+.field input:focus,.field select:focus,.field textarea:focus{outline:none; border-color:var(--accent);}
+.field-row{display:grid; grid-template-columns:1fr 1fr; gap:12px;}
+@media(max-width:520px){.field-row{grid-template-columns:1fr;}}
+
+/* ---------- scanner ---------- */
+.scanner-box{background:#0d1117; border-radius:12px; overflow:hidden; position:relative; margin-bottom:14px;}
+#qr-reader{width:100%;}
+#qr-reader video{width:100% !important; border-radius:12px;}
+.scan-tip{text-align:center; color:#9aa4b2; font-size:12px; padding:10px;}
+.manual-scan-row{display:flex; gap:8px;}
+.manual-scan-row input{flex:1;}
+.mode-tabs{display:flex; gap:8px; margin-bottom:14px; flex-wrap:wrap;}
+.mode-tab{flex:1; min-width:120px; border:1px solid var(--line); background:var(--panel); border-radius:9px; padding:12px; text-align:center; font-weight:700; font-size:12.5px;}
+.mode-tab.active{background:var(--accent-soft); border-color:var(--accent); color:var(--accent-dark2);}
+
+.item-found{border:1px solid var(--line); border-radius:10px; padding:14px; margin-bottom:14px; background:var(--bg);}
+.item-found .code{font-family:'IBM Plex Mono',monospace; font-size:12px; color:var(--ink-soft);}
+.item-found .name{font-size:15px; font-weight:800; margin:3px 0;}
+.item-found .sub{font-size:12px; color:var(--ink-soft);}
+.stock-pill{display:inline-block; margin-top:8px; font-size:12px; font-weight:700; padding:4px 10px; border-radius:20px; background:#fff; border:1px solid var(--line);}
+
+.qty-stepper{display:flex; align-items:center; gap:10px;}
+.qty-stepper button{width:38px; height:38px; border-radius:8px; border:1px solid var(--line); background:#fff; font-size:17px; font-weight:700;}
+.qty-stepper input{width:70px; text-align:center; font-weight:800; font-size:16px;}
+
+.line-item{display:flex; align-items:center; gap:10px; border:1px solid var(--line); border-radius:9px; padding:10px 12px; margin-bottom:8px;}
+.line-item .info{flex:1; min-width:0;}
+.line-item .info .n{font-weight:700; font-size:13px;}
+.line-item .info .c{font-size:11.5px; color:var(--ink-soft); font-family:'IBM Plex Mono',monospace;}
+.line-item .qty{width:64px; text-align:center; padding:6px; border:1px solid var(--line); border-radius:7px;}
+.line-item .rm{background:var(--danger-soft); color:var(--danger); border:none; border-radius:7px; width:30px; height:30px;}
+
+.checkbox-row{display:flex; align-items:center; gap:8px;}
+
+/* ---------- mobile scan page ---------- */
+.phone-shell{max-width:430px; margin:0 auto;}
+.mode-grid{display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:16px;}
+.mode-btn{border:1px solid var(--line); background:#fff; border-radius:12px; padding:16px 10px; text-align:center; font-weight:700; font-size:13px;}
+.mode-btn .ic{font-size:20px; display:block; margin-bottom:6px;}
+.mode-btn.active{background:var(--accent); border-color:var(--accent); color:#fff;}
+
+.print-label{width:260px; border:1px dashed #999; padding:12px; margin:0 auto 10px; text-align:center; font-family:'IBM Plex Mono',monospace;}
+.print-label .pname{font-family:'Inter',sans-serif; font-weight:700; font-size:12px; margin-top:6px;}
+
+/* ---------- toast ---------- */
+#toast-wrap{position:fixed; bottom:20px; right:20px; z-index:200; display:flex; flex-direction:column; gap:8px;}
+.toast{background:var(--sidebar); color:#fff; padding:12px 16px; border-radius:9px; font-size:13px; font-weight:600; box-shadow:0 8px 24px rgba(0,0,0,.2); display:flex; align-items:center; gap:8px; max-width:320px;}
+.toast.err{background:var(--danger);}
+.toast.ok{background:var(--success);}
+
+.overdue-row{background:var(--danger-soft) !important;}
+.warn-row{background:var(--warning-soft) !important;}
+
+/* responsive */
+@media(max-width:960px){
+  .sidebar{transform:translateX(-100%);}
+  .sidebar.open{transform:translateX(0);}
+  .main{margin-left:0;}
+  .hamburger{display:flex;}
+  .search-box{display:none;}
+  .view{padding:14px;}
+  .grid-4,.grid-3,.grid-2{grid-template-columns:1fr;}
+  h1.page-title{font-size:20px;}
+  .user-meta{display:none;}
+}
+.scrim{display:none; position:fixed; inset:0; background:rgba(0,0,0,.4); z-index:55;}
+.scrim.show{display:block;}
+</style>
+</head>
+<body>
+
+<div id="app">
+  <div class="scrim" id="scrim" onclick="toggleSidebar(false)"></div>
+
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-brand">
+      <div class="name">PT. Dokar Putra</div>
+      <div class="sub">Bengkel &amp; Gudang Sparepart</div>
+    </div>
+    <button class="sidebar-scan" onclick="openQuickScan()">📷 Scan Barcode</button>
+    <nav class="nav" id="nav"></nav>
+    <div class="sidebar-foot">v1.0 · Data sesi lokal (browser)</div>
+  </aside>
+
+  <div class="main">
+    <div class="topbar">
+      <button class="hamburger" onclick="toggleSidebar()">☰</button>
+      <div class="search-box">🔍 <span>Cari SKU, Part No, Barcode…</span></div>
+      <div class="topbar-spacer"></div>
+      <button class="btn btn-primary" onclick="openQuickScan()">📷 Scan Barcode</button>
+      <div class="icon-btn" title="Notifikasi">🔔</div>
+      <div class="user-chip" id="userChip" style="cursor:pointer;" onclick="showRoleLogin()" title="Klik untuk ganti peran login">
+        <div class="user-avatar" id="userAvatar">SG</div>
+        <div class="user-meta"><div class="n" id="userName">Staff Gudang</div><div class="r" id="userRole">Admin</div></div>
+      </div>
+    </div>
+    <div class="view" id="view-root"></div>
+  </div>
+</div>
+
+<!-- Generic overlay for modals -->
+<div class="overlay" id="overlay"><div id="overlay-content"></div></div>
+
+<div id="toast-wrap"></div>
+
+<script>
+/* ============================= DATA (in-memory, session only) ============================= */
+let ITEMS = [
+  {id:'IT-1', kode:'04465-0K140', d1:'Kampas Rem Depan (Brake Pad Front)', d2:'Toyota Innova Reborn / Fortuner VRZ 2016-2023', kategori:'Sistem Rem', satuan:'Set', stok:24, stokAwal:22, stokMin:8, harga:585000, lokasi:'Rak B-03 Tk.2', lemariKe:'B-03', box:'2'},
+  {id:'IT-2', kode:'15601-BZ010', d1:'Filter Oli Mesin (Oil Filter)', d2:'Avanza/Xenia/Rush Dual VVT-i', kategori:'Mesin & Filter', satuan:'Pcs', stok:48, stokAwal:26, stokMin:20, harga:32500, lokasi:'Rak A-01 Tk.1', lemariKe:'A-01', box:'1'},
+  {id:'IT-3', kode:'08880-83389', d1:'Oli Mesin TMO Full Synthetic 10W-40 (Galon 4L)', d2:'Toyota Motor Oil Original', kategori:'Oli & Pelumas', satuan:'Galon', stok:15, stokAwal:8, stokMin:5, harga:620000, lokasi:'Rak C-01 Palet', lemariKe:'C-01', box:'-'},
+  {id:'IT-4', kode:'48530-BZ210', d1:'Shock Absorber Belakang (Rear Damper)', d2:'Daihatsu Xenia / Toyota Avanza Gen 2', kategori:'Suspensi', satuan:'Pcs', stok:3, stokAwal:5, stokMin:6, harga:345000, lokasi:'Rak D-02 Tk.1', lemariKe:'D-02', box:'1'},
+  {id:'IT-5', kode:'SC20HR11', d1:'Busi Mesin Iridium Panjang (Spark Plug)', d2:'Corolla Altis / Vios Gen 3 Dual VVT-i', kategori:'Kelistrikan', satuan:'Pcs', stok:0, stokAwal:0, stokMin:12, harga:115000, lokasi:'Rak A-03 Tk.3', lemariKe:'A-03', box:'3'},
+  {id:'IT-6', kode:'90915-YZZE1', d1:'Filter Oli Mesin Genuine Toyota', d2:'D4D / Dual VVT-i', kategori:'Mesin & Filter', satuan:'Pcs', stok:41, stokAwal:26, stokMin:15, harga:95000, lokasi:'Rak A-01 Tk.1', lemariKe:'A-01', box:'1'},
+  {id:'IT-7', kode:'08887-01266', d1:'Brake Cleaner & Caliper Grease Spray 400ml', d2:'Pembersih residu kampas & pelumas kaliper', kategori:'Chemical', satuan:'Can', stok:7, stokAwal:8, stokMin:10, harga:185000, lokasi:'Rak D-02 Tk.1', lemariKe:'D-02', box:'1'},
+  {id:'IT-8', kode:'SST-SCAN-004', d1:'OBD-II Diagnostic Scanner Launch X431 Pro', d2:'Alat diagnostik komputer ECU', kategori:'SST Tools', satuan:'Unit', stok:1, stokAwal:1, stokMin:1, harga:4500000, lokasi:'Lemari SST-01', lemariKe:'SST-01', box:'-', isTool:true},
+  {id:'IT-9', kode:'SST-SUSP-012', d1:'Spring Compressor Hidrolik Heavy Duty 1T', d2:'Alat kompres per suspensi', kategori:'SST Tools', satuan:'Unit', stok:1, stokAwal:1, stokMin:1, harga:1450000, lokasi:'Rak Khusus D-02', lemariKe:'D-02', box:'-', isTool:true},
+];
+
+let MEKANIK = [
+  {id:'MEK-01', nama:'Budi Pratama', grade:'Foreman', bay:'Bay 1', status:'Aktif'},
+  {id:'MEK-03', nama:'Hendra Setiawan', grade:'Senior Mekanik', bay:'Bay 2', status:'Aktif'},
+  {id:'MEK-07', nama:'Rizky Kurniawan', grade:'Senior Mekanik', bay:'Bay 3', status:'Aktif'},
+  {id:'MEK-11', nama:'Agus Susanto', grade:'Mekanik Umum', bay:'Bay 4', status:'Aktif'},
+  {id:'MEK-14', nama:'Dedi Kurniawan', grade:'Asisten Mekanik', bay:'Bay 1', status:'Aktif'},
+  {id:'MEK-16', nama:'Fajar Ramadhan', grade:'Mekanik Servis', bay:'Bay 3', status:'Aktif'},
+];
+
+let INCOMING = [
+  {id:'IN-0001', tanggal:'2026-09-08', vendor:'PT Astra Otoparts Tbk', invoice:'INV-AO-8849102', poNo:'PO-DPM-2026-108', items:[{kode:'04465-0K140', qty:10, harga:420000}], total:4200000},
+];
+let OUTGOING = [
+  {id:'OUT-0117', tanggal:'2026-09-10', spk:'SPK-2026-0891', noPol:'B 1928 DKM', tipeMobil:'Toyota Innova Reborn 2.4 G A/T', customer:'PT. Anugerah Logistik Express', mekanikId:'MEK-03', km:68450,
+   items:[{kode:'04465-0K140', qty:1, harga:585000},{kode:'08880-83389', qty:1, harga:620000},{kode:'90915-YZZE1', qty:1, harga:95000},{kode:'08887-01266', qty:1, harga:185000}], total:1485000},
+];
+let BORROWS = [
+  {id:'BOR-0082', kode:'SST-SCAN-004', mekanikAmbilId:'MEK-03', spk:'SPK-2026-0895', waktuAmbil:daysAgoISO(4), status:'dipinjam', mekanikKembaliId:null, waktuKembali:null},
+  {id:'BOR-0085', kode:'SST-SUSP-012', mekanikAmbilId:'MEK-11', spk:'SPK-2026-0901', waktuAmbil:daysAgoISO(1), status:'dipinjam', mekanikKembaliId:null, waktuKembali:null},
+];
+
+function daysAgoISO(n){ let d=new Date(); d.setDate(d.getDate()-n); return d.toISOString(); }
+function nowISO(){ return new Date().toISOString(); }
+function fmtDate(iso){ if(!iso) return '-'; const d=new Date(iso); return d.toLocaleDateString('id-ID',{day:'2-digit',month:'short',year:'numeric'}); }
+function fmtDateTime(iso){ if(!iso) return '-'; const d=new Date(iso); return d.toLocaleDateString('id-ID',{day:'2-digit',month:'short'})+' '+d.toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'})+' WIB'; }
+function rupiah(n){ return 'Rp ' + Math.round(n||0).toLocaleString('id-ID'); }
+function mekanikNama(id){ const m=MEKANIK.find(x=>x.id===id); return m? m.nama : '—'; }
+function findItem(kode){ return ITEMS.find(i=>i.kode.toLowerCase()===String(kode).trim().toLowerCase()); }
+function itemIncomingQty(kode){ let t=0; INCOMING.forEach(tr=>tr.items.forEach(li=>{ if(li.kode.toLowerCase()===kode.toLowerCase()) t+=li.qty; })); return t; }
+function itemOutgoingQty(kode){ let t=0; OUTGOING.forEach(tr=>tr.items.forEach(li=>{ if(li.kode.toLowerCase()===kode.toLowerCase()) t+=li.qty; })); return t; }
+function uid(prefix){ return prefix+'-'+Math.floor(1000+Math.random()*9000); }
+function genBarcode(){ return String(Math.floor(10000+Math.random()*89999))+'-'+String(Math.floor(1000+Math.random()*8999)).slice(0,5).toUpperCase(); }
+
+/* ============================= NAV / ROUTER ============================= */
+const NAV_ITEMS = [
+  {id:'dashboard', icon:'📊', label:'Dashboard'},
+  {id:'barang', icon:'📦', label:'Master Data Barang'},
+  {id:'masuk', icon:'⬇️', label:'Transaksi Masuk'},
+  {id:'keluar', icon:'⬆️', label:'Transaksi Keluar'},
+  {id:'pinjam', icon:'🔧', label:'Peminjaman & Kembali'},
+  {id:'scan', icon:'📱', label:'Scan Barcode Lapangan'},
+  {id:'mekanik', icon:'👤', label:'Master Mekanik'},
+  {id:'laporan', icon:'📑', label:'Laporan & Ekspor'},
+];
+let CURRENT_VIEW = 'dashboard';
+
+/* ---- Role akses: 'gudang' bisa buka semua menu, 'mekanik' dibatasi ---- */
+let CURRENT_ROLE = null;
+const RESTRICTED_TO_GUDANG = ['keluar','mekanik','laporan'];
+const RESTRICTED_LABELS = {keluar:'Transaksi Keluar', mekanik:'Master Mekanik', laporan:'Laporan & Ekspor'};
+
+function showRoleLogin(){
+  openModal(`
+    <div class="modal-head"><h3>Login sebagai...</h3>${CURRENT_ROLE?'<button class="close-x" onclick="closeModal()">✕</button>':''}</div>
+    <div class="modal-body">
+      <p style="margin-top:0;color:var(--ink-soft);font-size:13px;">Pilih peran untuk masuk ke sistem gudang. Mekanik hanya bisa akses menu operasional lapangan, sedangkan Staff Gudang punya akses penuh.</p>
+      <div class="grid grid-2">
+        <div class="card" style="text-align:center;cursor:pointer;" onclick="selectRole('gudang')">
+          <div style="font-size:30px;margin-bottom:6px;">📦</div>
+          <div style="font-weight:800;">Staff Gudang</div>
+          <div style="font-size:12px;color:var(--ink-soft);margin-top:4px;">Akses penuh semua menu</div>
+        </div>
+        <div class="card" style="text-align:center;cursor:pointer;" onclick="selectRole('mekanik')">
+          <div style="font-size:30px;margin-bottom:6px;">🔧</div>
+          <div style="font-weight:800;">Mekanik</div>
+          <div style="font-size:12px;color:var(--ink-soft);margin-top:4px;">Akses menu operasional saja</div>
+        </div>
+      </div>
+    </div>
+  `);
+}
+function selectRole(role){
+  CURRENT_ROLE = role;
+  const avatar=document.getElementById('userAvatar');
+  const name=document.getElementById('userName');
+  const roleLabel=document.getElementById('userRole');
+  if(role==='gudang'){ avatar.textContent='SG'; name.textContent='Staff Gudang'; roleLabel.textContent='Admin'; }
+  else{ avatar.textContent='MK'; name.textContent='Mekanik'; roleLabel.textContent='Bengkel'; }
+  closeModal();
+  buildNav();
+  if(CURRENT_ROLE==='mekanik' && RESTRICTED_TO_GUDANG.includes(CURRENT_VIEW)){
+    navigate('dashboard');
+  } else {
+    navigate(CURRENT_VIEW);
+  }
+  toast(`✅ Masuk sebagai ${role==='gudang'?'Staff Gudang':'Mekanik'}`,'ok');
+}
+
+function buildNav(){
+  const nav = document.getElementById('nav');
+  const visibleItems = NAV_ITEMS.filter(n => !(CURRENT_ROLE==='mekanik' && RESTRICTED_TO_GUDANG.includes(n.id)));
+  nav.innerHTML = visibleItems.map(n=>{
+    let badge='';
+    if(n.id==='pinjam'){ const overdue = BORROWS.filter(b=>b.status==='dipinjam' && isOverdue(b)).length; if(overdue>0) badge=`<span class="nav-badge">${overdue} Overdue</span>`; }
+    return `<div class="nav-item ${CURRENT_VIEW===n.id?'active':''}" onclick="navigate('${n.id}')">
+      <span class="nav-icon">${n.icon}</span><span>${n.label}</span>${badge}
+    </div>`;
+  }).join('');
+}
+function isOverdue(b){ const days=(Date.now()-new Date(b.waktuAmbil))/86400000; return days>3; }
+
+function navigate(view){
+  if(CURRENT_ROLE==='mekanik' && RESTRICTED_TO_GUDANG.includes(view)){
+    toast(`🚫 Akses ditolak — "${RESTRICTED_LABELS[view]}" khusus untuk Staff Gudang`,'err');
+    view='dashboard';
+  }
+  stopScanner();
+  CURRENT_VIEW = view;
+  buildNav();
+  toggleSidebar(false);
+  const renderers = {dashboard:renderDashboard, barang:renderBarang, masuk:renderMasuk, keluar:renderKeluar, pinjam:renderPinjam, scan:renderScanLapangan, mekanik:renderMekanik, laporan:renderLaporan};
+  document.getElementById('view-root').innerHTML='';
+  renderers[view]();
+  window.scrollTo(0,0);
+}
+function toggleSidebar(force){
+  const sb=document.getElementById('sidebar'); const scrim=document.getElementById('scrim');
+  const show = force!==undefined? force : !sb.classList.contains('open');
+  sb.classList.toggle('open', show); scrim.classList.toggle('show', show);
+}
+
+/* ============================= TOAST ============================= */
+function toast(msg, type){
+  const wrap=document.getElementById('toast-wrap');
+  const el=document.createElement('div');
+  el.className='toast'+(type?(' '+type):'');
+  el.innerHTML=msg;
+  wrap.appendChild(el);
+  setTimeout(()=>{ el.style.opacity='0'; el.style.transition='opacity .3s'; setTimeout(()=>el.remove(),300); }, 3200);
+}
+
+/* ============================= MODAL HELPERS ============================= */
+function openModal(html, wide){
+  document.getElementById('overlay-content').innerHTML = `<div class="modal ${wide?'wide':''}">${html}</div>`;
+  document.getElementById('overlay').classList.add('show');
+}
+function closeModal(){
+  stopScanner();
+  document.getElementById('overlay').classList.remove('show');
+  document.getElementById('overlay-content').innerHTML='';
+}
+document.getElementById('overlay').addEventListener('click', e=>{ if(e.target.id==='overlay') closeModal(); });
+
+/* ============================= BARCODE SCANNER (camera + foto) ============================= */
+let qrScanner=null;
+// Registry: setiap input scan (quickScanInput, inlineScanInput, fieldScanInput, dst) didaftarkan
+// ke sebuah handler function. Ini membuat live-camera, ambil-foto, dan ketik-manual
+// semuanya bermuara ke handler yang sama, tanpa bentrok antar halaman/modal.
+window.__scanContexts = {};
+function registerScanContext(inputId, handlerFn){ window.__scanContexts[inputId] = handlerFn; }
+function dispatchScanResult(inputId, code){
+  code = (code||'').trim();
+  if(!code) return;
+  const fn = window.__scanContexts[inputId];
+  if(fn) fn(code); else toast('Konteks scan tidak ditemukan, coba muat ulang halaman ini','err');
+}
+
+function stopScanner(){
+  if(qrScanner){
+    try{ qrScanner.stop().then(()=>{ try{qrScanner.clear();}catch(e){} qrScanner=null; }).catch(()=>{qrScanner=null;}); }catch(e){ qrScanner=null; }
+  }
+}
+
+// Dipanggil lewat tombol (butuh gesture pengguna agar prompt izin kamera lebih pasti muncul)
+function startLiveScan(inputId){
+  stopScanner();
+  const readerEl = document.getElementById('qr-reader');
+  if(!readerEl) return;
+  readerEl.innerHTML='';
+  const tipEl = document.getElementById('scanTip-'+inputId);
+  if(tipEl) tipEl.innerHTML = '⏳ Meminta izin kamera…';
+  if(typeof Html5Qrcode==='undefined'){ if(tipEl) tipEl.innerHTML='⚠️ Modul kamera gagal dimuat (perlu koneksi internet). Gunakan "Ambil Foto" atau ketik manual.'; return; }
+  qrScanner = new Html5Qrcode("qr-reader");
+  const config = { fps:10, qrbox:{width:260,height:140} };
+  qrScanner.start({facingMode:"environment"}, config,
+    (decodedText)=>{ stopScanner(); dispatchScanResult(inputId, decodedText); },
+    ()=>{ /* abaikan error per-frame, ini normal saat belum ketemu barcode */ }
+  ).then(()=>{
+    if(tipEl) tipEl.innerHTML='🔎 Arahkan kamera ke barcode…';
+  }).catch(err=>{
+    const reason = (err && err.message) ? err.message : String(err);
+    if(tipEl) tipEl.innerHTML = `⚠️ Kamera langsung tidak bisa diaktifkan (${escapeHtml(reason)}).<br>
+      Ini sering terjadi bila halaman dibuka lewat pratinjau chat, atau browser menolak izin kamera.<br>
+      <strong>Solusi:</strong> gunakan tombol "📸 Ambil Foto Barcode" di bawah — cara ini hampir selalu berhasil di HP karena membuka aplikasi kamera bawaan. Atau buka file ini langsung sebagai tab tersendiri di browser HP Anda (bukan dari dalam preview), lalu izinkan akses kamera saat diminta.`;
+  });
+}
+
+// Fallback: ambil 1 foto pakai kamera bawaan HP (input file capture), lalu barcode dibaca dari foto tsb.
+// Cara ini nyaris selalu berhasil karena memakai kamera native OS, bukan izin getUserMedia browser.
+function handlePhotoCapture(inputEl, inputId){
+  const file = inputEl.files && inputEl.files[0];
+  inputEl.value='';
+  if(!file) return;
+  const tipEl = document.getElementById('scanTip-'+inputId);
+  if(tipEl) tipEl.innerHTML = '⏳ Membaca barcode dari foto…';
+  if(typeof Html5Qrcode==='undefined'){ toast('Modul pembaca barcode belum siap, cek koneksi internet','err'); return; }
+  stopScanner();
+  const readerEl = document.getElementById('qr-reader');
+  if(readerEl) readerEl.innerHTML='';
+  const fileScanner = new Html5Qrcode("qr-reader");
+  fileScanner.scanFile(file, false).then(decodedText=>{
+    if(tipEl) tipEl.innerHTML='✅ Barcode terbaca dari foto';
+    try{ fileScanner.clear(); }catch(e){}
+    dispatchScanResult(inputId, decodedText);
+  }).catch(err=>{
+    if(tipEl) tipEl.innerHTML = '❌ Barcode tidak terbaca dari foto ini. Coba foto lebih dekat, terang, dan fokus — atau ketik kode secara manual di bawah.';
+    try{ fileScanner.clear(); }catch(e){}
+  });
+}
+
+function manualScanSubmit(inputId){
+  const val=document.getElementById(inputId).value.trim();
+  if(!val){ toast('Masukkan kode barcode terlebih dahulu','err'); return; }
+  dispatchScanResult(inputId, val);
+}
+
+function scannerBlock(inputId){
+  const photoInputId = inputId+'-photo';
+  return `
+  <div class="scanner-box">
+    <div id="qr-reader"></div>
+    <div class="scan-tip" id="scanTip-${inputId}">Tekan "Mulai Kamera Langsung", atau langsung pakai "Ambil Foto Barcode" di bawah.</div>
+  </div>
+  <div style="display:flex; gap:8px; margin-bottom:10px; flex-wrap:wrap;">
+    <button type="button" class="btn btn-dark" style="flex:1; min-width:150px; justify-content:center;" onclick="startLiveScan('${inputId}')">🎥 Mulai Kamera Langsung</button>
+    <label class="btn btn-primary" style="flex:1; min-width:150px; justify-content:center; margin:0;">
+      📸 Ambil Foto Barcode
+      <input type="file" accept="image/*" capture="environment" style="display:none" id="${photoInputId}" onchange="handlePhotoCapture(this,'${inputId}')">
+    </label>
+  </div>
+  <div class="manual-scan-row">
+    <input type="text" id="${inputId}" placeholder="Atau ketik/tempel kode barcode di sini…" onkeydown="if(event.key==='Enter'){manualScanSubmit('${inputId}');}">
+    <button class="btn btn-primary" onclick="manualScanSubmit('${inputId}')">Cari</button>
+  </div>`;
+}
+
+/* ============================= QUICK SCAN (topbar / sidebar) ============================= */
+function openQuickScan(){
+  openModal(`
+    <div class="modal-head"><h3>📷 Scan Barcode Cepat</h3><button class="close-x" onclick="closeModal()">✕</button></div>
+    <div class="modal-body">
+      <div class="mode-tabs" id="quickModeTabs"></div>
+      ${scannerBlock('quickScanInput')}
+      <div id="quickScanResult"></div>
+    </div>`);
+  window.__quickMode='keluar';
+  renderQuickModeTabs();
+  registerScanContext('quickScanInput', handleQuickScan);
+}
+function renderQuickModeTabs(){
+  const modes=[{id:'masuk',label:'Barang Masuk'},{id:'keluar',label:'Barang Keluar'},{id:'pinjam',label:'Pinjam Alat'},{id:'kembali',label:'Kembalikan'}];
+  document.getElementById('quickModeTabs').innerHTML = modes.map(m=>`<div class="mode-tab ${window.__quickMode===m.id?'active':''}" onclick="window.__quickMode='${m.id}'; renderQuickModeTabs();">${m.label}</div>`).join('');
+}
+function handleQuickScan(code){
+  const item=findItem(code);
+  if(!item){ document.getElementById('quickScanResult').innerHTML = `<div class="item-found"><strong>❌ Barcode "${escapeHtml(code)}" tidak ditemukan</strong><div class="sub">Periksa kembali kode, atau daftarkan barang baru di Master Data Barang.</div></div>`; return; }
+  stopScanner();
+  const mode = window.__quickMode;
+  document.getElementById('quickScanResult').innerHTML = itemFoundCardWithAction(item, mode);
+}
+function itemFoundCardWithAction(item, mode){
+  let actionHtml='';
+  if(mode==='keluar' || mode==='masuk'){
+    actionHtml = `
+    <div class="field"><label>Jumlah</label>
+      <div class="qty-stepper"><button onclick="stepQty(-1)">−</button><input id="qsQty" type="number" value="1" min="1"><button onclick="stepQty(1)">+</button></div>
+    </div>
+    ${mode==='keluar'?`<div class="field"><label>Mekanik Pengambil</label>${mekanikSelect('qsMekanik')}</div>`:''}
+    <button class="btn btn-primary" style="width:100%;justify-content:center;padding:12px;" onclick="quickConfirm('${item.kode}','${mode}')">✅ Konfirmasi ${mode==='masuk'?'Barang Masuk':'Barang Keluar'}</button>`;
+  } else if(mode==='pinjam'){
+    actionHtml = `<div class="field"><label>Mekanik Peminjam</label>${mekanikSelect('qsMekanik')}</div>
+    <button class="btn btn-primary" style="width:100%;justify-content:center;padding:12px;" onclick="quickConfirm('${item.kode}','${mode}')">✅ Konfirmasi Peminjaman</button>`;
+  } else if(mode==='kembali'){
+    const b = BORROWS.find(x=>x.kode===item.kode && x.status==='dipinjam');
+    if(!b){ actionHtml = `<div class="badge badge-warn">Tidak ada peminjaman aktif untuk alat ini</div>`; }
+    else{
+      actionHtml = `<div class="sub">Dipinjam oleh <strong>${mekanikNama(b.mekanikAmbilId)}</strong> sejak ${fmtDateTime(b.waktuAmbil)}</div>
+      <div class="field" style="margin-top:10px;"><label>Dikembalikan oleh</label>${mekanikSelect('qsMekanik')}</div>
+      <button class="btn btn-primary" style="width:100%;justify-content:center;padding:12px;" onclick="quickConfirm('${item.kode}','${mode}')">✅ Konfirmasi Pengembalian</button>`;
+    }
+  }
+  return `<div class="item-found">
+    <div class="code">${item.kode}</div>
+    <div class="name">${item.d1}</div>
+    <div class="sub">${item.d2||''} · ${item.lokasi||''}</div>
+    ${!item.isTool?`<span class="stock-pill">Stok: ${item.stok} ${item.satuan}</span>`:''}
+    <div style="margin-top:14px;">${actionHtml}</div>
+  </div>`;
+}
+function stepQty(delta){ const el=document.getElementById('qsQty'); let v=Math.max(1,(parseInt(el.value)||1)+delta); el.value=v; }
+function mekanikSelect(id){
+  return `<select id="${id}">${MEKANIK.filter(m=>m.status==='Aktif').map(m=>`<option value="${m.id}">${m.nama} — ${m.grade}</option>`).join('')}</select>`;
+}
+function quickConfirm(kode, mode){
+  const item=findItem(kode);
+  const qty = document.getElementById('qsQty') ? parseInt(document.getElementById('qsQty').value)||1 : 1;
+  const mekId = document.getElementById('qsMekanik') ? document.getElementById('qsMekanik').value : null;
+  if(mode==='masuk'){
+    item.stok += qty;
+    INCOMING.unshift({id:uid('IN'), tanggal:new Date().toISOString().slice(0,10), vendor:'(Scan Cepat)', invoice:'-', items:[{kode:item.kode, qty, harga:item.harga}], total:qty*item.harga});
+    toast(`✅ ${qty} ${item.satuan} "${item.d1}" ditambahkan ke stok`,'ok');
+  } else if(mode==='keluar'){
+    if(qty>item.stok){ toast('❌ Stok tidak mencukupi','err'); return; }
+    item.stok -= qty;
+    OUTGOING.unshift({id:uid('OUT'), tanggal:new Date().toISOString().slice(0,10), spk:'-', noPol:'-', tipeMobil:'-', customer:'-', mekanikId:mekId, km:0, items:[{kode:item.kode, qty, harga:item.harga}], total:qty*item.harga});
+    toast(`✅ ${qty} ${item.satuan} "${item.d1}" dikeluarkan oleh ${mekanikNama(mekId)}`,'ok');
+  } else if(mode==='pinjam'){
+    BORROWS.unshift({id:uid('BOR'), kode:item.kode, mekanikAmbilId:mekId, spk:'-', waktuAmbil:nowISO(), status:'dipinjam', mekanikKembaliId:null, waktuKembali:null});
+    toast(`🔧 "${item.d1}" dipinjam oleh ${mekanikNama(mekId)}`,'ok');
+  } else if(mode==='kembali'){
+    const b = BORROWS.find(x=>x.kode===item.kode && x.status==='dipinjam');
+    if(b){ b.status='kembali'; b.mekanikKembaliId=mekId; b.waktuKembali=nowISO(); toast(`↩️ "${item.d1}" dikembalikan oleh ${mekanikNama(mekId)}`,'ok'); }
+  }
+  closeModal();
+  navigate(CURRENT_VIEW);
+}
+function escapeHtml(s){ return String(s).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
+/* ============================= EXCEL EXPORT / IMPORT (format template PT. Dokar Putra Mandiri) ============================= */
+
+// Sheet aman-untuk-array-of-arrays (AOA) supaya baris judul, baris kosong, dan baris header
+// persis meniru struktur file template (baris 1-2 judul, baris 3 kosong, baris 4 header, data mulai baris 5).
+function buildStockSheet(){
+  const aoa = [];
+  aoa.push(['', '', '', '', 'WAREHOUSE STOCK LIST']);
+  aoa.push(['', '', '', '', 'PT. DOKAR PUTRA MANDIRI']);
+  aoa.push([]);
+  aoa.push(['', 'Lemari Ke', 'BOX', '', 'CODE / PART NO', 'DESCRIPTION 1', 'DESCRIPTION 2', 'QTY\n(awal)', 'INCOMING', 'OUTGOING', 'FINAL STOCK', 'REMARK']);
+  ITEMS.forEach(i=>{
+    const masuk = itemIncomingQty(i.kode);
+    const keluar = itemOutgoingQty(i.kode);
+    aoa.push(['', i.lemariKe||'', i.box||'', '', i.kode, i.d1, i.d2||'', (i.stokAwal!=null?i.stokAwal:i.stok), masuk, keluar, i.stok, i.stok<i.stokMin? 'Stok Menipis':'']);
+  });
+  const ws = XLSX.utils.aoa_to_sheet(aoa);
+  ws['!cols'] = [{wch:3},{wch:10},{wch:6},{wch:2},{wch:16},{wch:32},{wch:28},{wch:9},{wch:9},{wch:9},{wch:11},{wch:14}];
+  return ws;
+}
+function buildIncomingSheet(){
+  const aoa = [];
+  aoa.push(['', 'INCOMING LIST']);
+  aoa.push(['', 'PT. DOKAR PUTRA MANDIRI']);
+  aoa.push([]);
+  aoa.push(['', 'Date', 'CODE / PART NO', 'DESRCIPTION1', 'DESCRIPTION 2', 'QTY', 'Harga Satuan', 'Total', 'PPN 11%', 'Total Harga Sdh PPN ', 'VENDOR NAME', 'VENDOR INVOICE', 'DPM PO NO.']);
+  INCOMING.forEach(tr=>{
+    tr.items.forEach(li=>{
+      const it=findItem(li.kode);
+      const total = li.qty*li.harga;
+      const ppn = Math.round(total*0.11);
+      aoa.push(['', tr.tanggal, li.kode, it?it.d1:'KODE TIDAK DITEMUKAN', it?it.d2||'':'', li.qty, li.harga, total, ppn, total+ppn, tr.vendor, tr.invoice, tr.poNo||'']);
+    });
+  });
+  const ws = XLSX.utils.aoa_to_sheet(aoa);
+  ws['!cols'] = [{wch:3},{wch:12},{wch:16},{wch:26},{wch:24},{wch:6},{wch:12},{wch:12},{wch:12},{wch:16},{wch:22},{wch:16},{wch:16}];
+  return ws;
+}
+function buildOutgoingSheet(){
+  const aoa = [];
+  aoa.push(['', 'OUTGOING LIST']);
+  aoa.push(['', 'PT. DOKAR PUTRA MANDIRI']);
+  aoa.push([]);
+  aoa.push(['', 'DATE', 'CODE / PART NO', 'DESCRIPTION 1', 'DESCRIPTION 2', 'QTY', 'SPK', 'NO POL', 'TYPE MOBIL', 'CUSTOMER', 'PENGGUNA (Mekanik)', 'KM']);
+  OUTGOING.forEach(tr=>{
+    tr.items.forEach(li=>{
+      const it=findItem(li.kode);
+      aoa.push(['', tr.tanggal, li.kode, it?it.d1:'KODE TIDAK DITEMUKAN', it?it.d2||'':'', li.qty, tr.spk, tr.noPol, tr.tipeMobil, tr.customer, mekanikNama(tr.mekanikId), tr.km]);
+    });
+  });
+  const ws = XLSX.utils.aoa_to_sheet(aoa);
+  ws['!cols'] = [{wch:3},{wch:12},{wch:16},{wch:28},{wch:22},{wch:6},{wch:14},{wch:12},{wch:26},{wch:24},{wch:18},{wch:9}];
+  return ws;
+}
+function exportItemsExcel(){
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, buildStockSheet(), 'STOCK LIST');
+  XLSX.writeFile(wb, 'WAREHOUSE_STOCK_LIST.xlsx');
+  toast('📥 File Excel berhasil diunduh: WAREHOUSE_STOCK_LIST.xlsx','ok');
+}
+function exportIncomingExcel(){
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, buildIncomingSheet(), 'INCOMING');
+  XLSX.writeFile(wb, 'INCOMING_LIST.xlsx');
+  toast('📥 File Excel berhasil diunduh: INCOMING_LIST.xlsx','ok');
+}
+function exportOutgoingExcel(){
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, buildOutgoingSheet(), 'OUTGOING');
+  XLSX.writeFile(wb, 'OUTGOING_LIST.xlsx');
+  toast('📥 File Excel berhasil diunduh: OUTGOING_LIST.xlsx','ok');
+}
+// Ekspor gabungan 3 sheet dalam SATU file, persis seperti format MASTER_STOCK_LIST.xlsx yang dipakai bengkel.
+function exportMasterTemplateExcel(){
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, buildStockSheet(), 'STOCK LIST');
+  XLSX.utils.book_append_sheet(wb, buildIncomingSheet(), 'INCOMING');
+  XLSX.utils.book_append_sheet(wb, buildOutgoingSheet(), 'OUTGOING');
+  XLSX.writeFile(wb, 'MASTER_STOCK_LIST.xlsx');
+  toast('📥 File Excel berhasil diunduh: MASTER_STOCK_LIST.xlsx (3 sheet)','ok');
+}
+function exportBorrowExcel(){
+  const rows = BORROWS.map(b=>{
+    const it=findItem(b.kode);
+    return {'No Transaksi':b.id,'Barcode':b.kode,'Nama Alat':it?it.d1:'','Dipinjam Oleh':mekanikNama(b.mekanikAmbilId),'Waktu Ambil':fmtDateTime(b.waktuAmbil),'Dikembalikan Oleh':b.mekanikKembaliId?mekanikNama(b.mekanikKembaliId):'-','Waktu Kembali':b.waktuKembali?fmtDateTime(b.waktuKembali):'-','Status':b.status};
+  });
+  if(!rows.length){ toast('Tidak ada data untuk diekspor','err'); return; }
+  const ws = XLSX.utils.json_to_sheet(rows);
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'Peminjaman & Kembali'.slice(0,31));
+  XLSX.writeFile(wb, 'Peminjaman_Alat.xlsx');
+  toast('📥 File Excel berhasil diunduh: Peminjaman_Alat.xlsx','ok');
+}
+
+// ---- Import: baca file dengan format template (header boleh ada di baris berapa saja,
+// terdeteksi otomatis dengan mencari baris yang mengandung "CODE / PART NO"). ----
+function normHeader(s){ return String(s==null?'':s).replace(/\n/g,' ').replace(/\s+/g,' ').trim().toLowerCase(); }
+function findHeaderRow(aoa, mustContain){
+  for(let r=0;r<aoa.length;r++){
+    const cells = (aoa[r]||[]).map(normHeader);
+    if(cells.some(c=>c.includes(mustContain))) return r;
+  }
+  return -1;
+}
+function colMapFromHeader(headerRow){
+  const map={};
+  headerRow.forEach((c,idx)=>{ const n=normHeader(c); if(n) map[n]=idx; });
+  return map;
+}
+function pick(map, row, ...candidates){
+  for(const c of candidates){ if(map[c]!=null && row[map[c]]!=null && row[map[c]]!=='') return row[map[c]]; }
+  return '';
+}
+
+function importTemplateExcel(fileInput){
+  const file = fileInput.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = e=>{
+    try{
+      const wb = XLSX.read(e.target.result, {type:'array'});
+      let addedItem=0, updatedItem=0, addedIn=0, addedOut=0;
+
+      // --- Sheet Stok (nama sheet mengandung "stock") ---
+      const stockSheetName = wb.SheetNames.find(n=>/stock/i.test(n));
+      if(stockSheetName){
+        const aoa = XLSX.utils.sheet_to_json(wb.Sheets[stockSheetName], {header:1, defval:''});
+        const hRow = findHeaderRow(aoa, 'code / part no');
+        if(hRow>=0){
+          const map = colMapFromHeader(aoa[hRow]);
+          for(let r=hRow+1; r<aoa.length; r++){
+            const row = aoa[r]; if(!row || !row.length) continue;
+            const kode = pick(map,row,'code / part no');
+            if(!kode) continue;
+            const d1 = pick(map,row,'description 1');
+            const d2 = pick(map,row,'description 2');
+            const stokAwal = parseFloat(pick(map,row,'qty (awal)','qty awal','qty'))||0;
+            const masuk = parseFloat(pick(map,row,'incoming'))||0;
+            const keluar = parseFloat(pick(map,row,'outgoing'))||0;
+            let finalStock = pick(map,row,'final stock');
+            finalStock = finalStock===''? (stokAwal+masuk-keluar) : parseFloat(finalStock)||0;
+            const lemariKe = pick(map,row,'lemari ke');
+            const box = pick(map,row,'box');
+            let existing = findItem(kode);
+            if(existing){
+              existing.stok = finalStock; existing.stokAwal = stokAwal;
+              existing.d1 = d1||existing.d1; existing.d2 = d2||existing.d2;
+              existing.lemariKe = lemariKe||existing.lemariKe; existing.box = box||existing.box;
+              updatedItem++;
+            } else {
+              ITEMS.push({id:uid('IT'), kode:String(kode), d1:d1||String(kode), d2, kategori:'Umum', satuan:'Pcs', stok:finalStock, stokAwal, stokMin:5, harga:0, lokasi:[lemariKe,box].filter(Boolean).join(' / '), lemariKe, box});
+              addedItem++;
+            }
+          }
+        }
+      }
+
+      // --- Sheet Incoming (opsional, kalau ada di file yang sama) ---
+      const inSheetName = wb.SheetNames.find(n=>/incoming/i.test(n));
+      if(inSheetName){
+        const aoa = XLSX.utils.sheet_to_json(wb.Sheets[inSheetName], {header:1, defval:''});
+        const hRow = findHeaderRow(aoa, 'code / part no');
+        if(hRow>=0){
+          const map = colMapFromHeader(aoa[hRow]);
+          for(let r=hRow+1; r<aoa.length; r++){
+            const row=aoa[r]; if(!row || !row.length) continue;
+            const kode = pick(map,row,'code / part no'); if(!kode) continue;
+            const qty = parseFloat(pick(map,row,'qty'))||0; if(!qty) continue;
+            const harga = parseFloat(pick(map,row,'harga satuan'))||0;
+            INCOMING.unshift({
+              id:uid('IN'),
+              tanggal: pick(map,row,'date')||new Date().toISOString().slice(0,10),
+              vendor: pick(map,row,'vendor name')||'-',
+              invoice: pick(map,row,'vendor invoice')||'-',
+              poNo: pick(map,row,'dpm po no.')||'-',
+              items:[{kode:String(kode), qty, harga}],
+              total: qty*harga
+            });
+            addedIn++;
+          }
+        }
+      }
+
+      // --- Sheet Outgoing (opsional) ---
+      const outSheetName = wb.SheetNames.find(n=>/outgoing/i.test(n));
+      if(outSheetName){
+        const aoa = XLSX.utils.sheet_to_json(wb.Sheets[outSheetName], {header:1, defval:''});
+        const hRow = findHeaderRow(aoa, 'code / part no');
+        if(hRow>=0){
+          const map = colMapFromHeader(aoa[hRow]);
+          for(let r=hRow+1; r<aoa.length; r++){
+            const row=aoa[r]; if(!row || !row.length) continue;
+            const kode = pick(map,row,'code / part no'); if(!kode) continue;
+            const qty = parseFloat(pick(map,row,'qty'))||0; if(!qty) continue;
+            const it = findItem(kode);
+            const mekNamaStr = pick(map,row,'pengguna (mekanik)');
+            const mek = MEKANIK.find(m=>m.nama.toLowerCase()===String(mekNamaStr).toLowerCase());
+            OUTGOING.unshift({
+              id:uid('OUT'),
+              tanggal: pick(map,row,'date')||new Date().toISOString().slice(0,10),
+              spk: pick(map,row,'spk')||'-',
+              noPol: pick(map,row,'no pol')||'-',
+              tipeMobil: pick(map,row,'type mobil')||'-',
+              customer: pick(map,row,'customer')||'-',
+              mekanikId: mek? mek.id : null,
+              km: parseFloat(pick(map,row,'km'))||0,
+              items:[{kode:String(kode), qty, harga: it?it.harga:0}],
+              total: qty*(it?it.harga:0)
+            });
+            addedOut++;
+          }
+        }
+      }
+
+      if(!addedItem && !updatedItem && !addedIn && !addedOut){
+        toast('❌ Tidak ditemukan data yang sesuai format template. Pastikan header "CODE / PART NO" ada di sheet.','err');
+      } else {
+        toast(`✅ Import selesai — Stok: ${addedItem} baru/${updatedItem} update, Incoming: ${addedIn} baris, Outgoing: ${addedOut} baris`,'ok');
+      }
+      navigate(CURRENT_VIEW==='laporan'?'laporan':'barang');
+    }catch(err){ toast('❌ Gagal membaca file Excel: '+err.message,'err'); }
+  };
+  reader.readAsArrayBuffer(file);
+  fileInput.value='';
+}
+
+/* ============================= DASHBOARD ============================= */
+function renderDashboard(){
+  const totalItem = ITEMS.length;
+  const totalValue = ITEMS.reduce((s,i)=>s+i.stok*i.harga,0);
+  const lowStock = ITEMS.filter(i=>!i.isTool && i.stok<i.stokMin);
+  const activeBorrows = BORROWS.filter(b=>b.status==='dipinjam');
+  const overdueBorrows = activeBorrows.filter(isOverdue);
+  const recentOut = OUTGOING.slice(0,5);
+
+  document.getElementById('view-root').innerHTML = `
+    <div class="crumbs">Sistem Gudang / Pusat Kontrol Utama</div>
+    <h1 class="page-title">Dashboard Gudang &amp; Operasional Bengkel</h1>
+    <p class="page-desc">Monitoring real-time pergerakan suku cadang, permintaan mekanik, dan ketersediaan stok gudang.</p>
+
+    <div class="grid grid-4" style="margin-bottom:16px;">
+      <div class="card stat-card"><div class="label">Total Item Terdaftar</div><div class="value">${totalItem}</div><div class="foot">Part / SKU aktif</div></div>
+      <div class="card stat-card good"><div class="label">Total Valuasi Stok</div><div class="value">${rupiah(totalValue)}</div><div class="foot">Berdasarkan harga satuan × stok</div></div>
+      <div class="card stat-card ${lowStock.length?'warn':'good'}"><div class="label">Alert Stok Menipis</div><div class="value">${lowStock.length} Item</div><div class="foot">${lowStock.length? 'Perlu order ulang segera':'Semua stok aman'}</div></div>
+      <div class="card stat-card ${overdueBorrows.length?'danger':''}"><div class="label">Peminjaman Alat Aktif</div><div class="value">${activeBorrows.length} Alat</div><div class="foot">${overdueBorrows.length} overdue &gt; 3 hari</div></div>
+    </div>
+
+    <div class="grid grid-2">
+      <div class="card">
+        <div class="panel-title">Transaksi Keluar Terbaru</div>
+        <div class="panel-sub">Sparepart yang baru saja dikeluarkan ke mekanik</div>
+        <div class="table-wrap"><table>
+          <thead><tr><th>Part</th><th>Qty</th><th>SPK</th><th>Mekanik</th></tr></thead>
+          <tbody>
+          ${recentOut.length? recentOut.map(tr=>tr.items.map(li=>{
+            const it=findItem(li.kode);
+            return `<tr><td><div class="desc-primary">${it?it.d1:li.kode}</div><span class="code-chip">${li.kode}</span></td><td>${li.qty}</td><td>${tr.spk}</td><td>${mekanikNama(tr.mekanikId)}</td></tr>`;
+          }).join('')).join('') : `<tr><td colspan="4" class="empty">Belum ada transaksi keluar</td></tr>`}
+          </tbody>
+        </table></div>
+      </div>
+
+      <div class="card">
+        <div class="panel-title">Peminjaman Alat Belum Dikembalikan</div>
+        <div class="panel-sub">Monitoring alat ukur presisi &amp; SST yang sedang dibawa mekanik</div>
+        <div class="table-wrap"><table>
+          <thead><tr><th>Alat</th><th>Dipinjam Oleh</th><th>Durasi</th></tr></thead>
+          <tbody>
+          ${activeBorrows.length? activeBorrows.map(b=>{
+            const it=findItem(b.kode); const overdue=isOverdue(b);
+            const days=Math.floor((Date.now()-new Date(b.waktuAmbil))/86400000);
+            return `<tr class="${overdue?'overdue-row':''}"><td><div class="desc-primary">${it?it.d1:b.kode}</div><span class="code-chip">${b.kode}</span></td><td>${mekanikNama(b.mekanikAmbilId)}</td><td><span class="badge ${overdue?'badge-danger':'badge-warn'}">${days} hari ${overdue?'(Overdue)':''}</span></td></tr>`;
+          }).join('') : `<tr><td colspan="3" class="empty">Semua alat sudah dikembalikan ✓</td></tr>`}
+          </tbody>
+        </table></div>
+      </div>
+    </div>
+
+    <div class="card" style="margin-top:14px;">
+      <div class="panel-title">Stok Menipis / Kritis</div>
+      <div class="panel-sub">Item di bawah ambang batas stok minimum — perlu pemesanan ulang</div>
+      <div class="table-wrap"><table>
+        <thead><tr><th>Part</th><th>Stok Saat Ini</th><th>Stok Minimum</th><th>Status</th></tr></thead>
+        <tbody>
+        ${lowStock.length? lowStock.map(i=>`<tr><td><div class="desc-primary">${i.d1}</div><span class="code-chip">${i.kode}</span></td><td>${i.stok} ${i.satuan}</td><td>${i.stokMin} ${i.satuan}</td><td><span class="badge ${i.stok===0?'badge-danger':'badge-warn'}">${i.stok===0?'Stok Habis':'Menipis'}</span></td></tr>`).join('') : `<tr><td colspan="4" class="empty">Semua stok dalam kondisi aman ✓</td></tr>`}
+        </tbody>
+      </table></div>
+    </div>
+  `;
+}
+
+/* ============================= MASTER BARANG ============================= */
+function renderBarang(){
+  document.getElementById('view-root').innerHTML = `
+    <div class="crumbs">Sistem Gudang / Master Data</div>
+    <h1 class="page-title">Master Data Barang &amp; Barcode</h1>
+    <p class="page-desc">Kelola katalog suku cadang, lokasi Lemari/BOX, ambang batas stok minimum, dan cetak label barcode. Format Excel mengikuti template MASTER STOCK LIST bengkel.</p>
+    <div class="toolbar">
+      <button class="btn btn-primary" onclick="openItemModal()">+ Tambah Part Baru</button>
+      <button class="btn" onclick="exportItemsExcel()">⬇️ Export .xlsx (Format Template)</button>
+      <label class="btn" style="margin:0;">⬆️ Import Excel (Format Template)<input type="file" accept=".xlsx,.xls,.csv" style="display:none" onchange="importTemplateExcel(this)"></label>
+      <button class="btn" onclick="openQuickScanMode('keluar')">🔍 Cari via Scan</button>
+      <button class="btn btn-danger" id="bulkDeleteBtn" style="display:none;" onclick="confirmBulkDeleteItems()">🗑️ Hapus Terpilih (<span id="bulkDeleteCount">0</span>)</button>
+    </div>
+    <div class="card">
+      <div class="table-wrap"><table>
+        <thead><tr>
+          <th style="width:34px;"><input type="checkbox" id="selectAllItems" onchange="toggleSelectAllItems(this.checked)"></th>
+          <th>Part No &amp; Barcode</th><th>Deskripsi</th><th>Lemari Ke</th><th>BOX</th><th>Qty Awal</th><th>Stok Akhir</th><th>Harga</th><th>Aksi</th></tr></thead>
+        <tbody id="itemsTbody"></tbody>
+      </table></div>
+    </div>
+  `;
+  renderItemsTable();
+}
+let selectedItemIds = new Set();
+function renderItemsTable(){
+  const tbody=document.getElementById('itemsTbody');
+  tbody.innerHTML = ITEMS.map(i=>{
+    const status = i.isTool? '' : (i.stok===0? '<span class="badge badge-danger">Habis</span>' : i.stok<i.stokMin? '<span class="badge badge-warn">Menipis</span>' : '<span class="badge badge-good">Aman</span>');
+    return `<tr>
+      <td><input type="checkbox" class="item-select" data-id="${i.id}" ${selectedItemIds.has(i.id)?'checked':''} onchange="toggleSelectItem('${i.id}', this.checked)"></td>
+      <td><span class="code-chip">${i.kode}</span></td>
+      <td><div class="desc-primary">${i.d1}</div><div class="desc-secondary">${i.d2||''}</div></td>
+      <td>${i.lemariKe||'-'}</td>
+      <td>${i.box||'-'}</td>
+      <td>${i.stokAwal!=null?i.stokAwal:'-'}</td>
+      <td>${i.stok} ${i.satuan} ${status}</td>
+      <td>${rupiah(i.harga)}</td>
+      <td>
+        <button class="btn btn-sm" onclick="openItemModal('${i.id}')">Edit</button>
+        <button class="btn btn-sm" onclick="printLabel('${i.id}')">🏷️ Label</button>
+        <button class="btn btn-sm btn-danger" onclick="confirmDeleteItem('${i.id}')">🗑️ Hapus</button>
+      </td>
+    </tr>`;
+  }).join('') || `<tr><td colspan="9" class="empty">Belum ada data barang</td></tr>`;
+  updateBulkDeleteBar();
+}
+function toggleSelectItem(id, checked){
+  if(checked) selectedItemIds.add(id); else selectedItemIds.delete(id);
+  const all = ITEMS.length>0 && ITEMS.every(i=>selectedItemIds.has(i.id));
+  const selAll = document.getElementById('selectAllItems');
+  if(selAll) selAll.checked = all;
+  updateBulkDeleteBar();
+}
+function toggleSelectAllItems(checked){
+  selectedItemIds = new Set(checked ? ITEMS.map(i=>i.id) : []);
+  document.querySelectorAll('.item-select').forEach(cb=>cb.checked=checked);
+  updateBulkDeleteBar();
+}
+function updateBulkDeleteBar(){
+  const btn=document.getElementById('bulkDeleteBtn');
+  const countEl=document.getElementById('bulkDeleteCount');
+  if(!btn) return;
+  const n=selectedItemIds.size;
+  if(countEl) countEl.textContent=n;
+  btn.style.display = n>0 ? 'inline-flex' : 'none';
+}
+function confirmBulkDeleteItems(){
+  const ids=[...selectedItemIds];
+  if(!ids.length) return;
+  const items = ITEMS.filter(i=>ids.includes(i.id));
+  const usedAny = items.some(item => INCOMING.some(tr=>tr.items.some(li=>li.kode===item.kode)) || OUTGOING.some(tr=>tr.items.some(li=>li.kode===item.kode)) || BORROWS.some(b=>b.kode===item.kode));
+  let warn='';
+  if(usedAny){
+    warn = `<div class="badge badge-warn" style="display:block;margin-top:10px;padding:10px;">⚠️ Sebagian barang punya riwayat transaksi (masuk/keluar/peminjaman). Riwayat lama akan tetap ada tapi akan tertulis "KODE TIDAK DITEMUKAN" pada laporan.</div>`;
+  }
+  openModal(`
+    <div class="modal-head"><h3>Hapus ${ids.length} Barang Terpilih?</h3><button class="close-x" onclick="closeModal()">✕</button></div>
+    <div class="modal-body">
+      <p>Anda yakin ingin menghapus <strong>${ids.length} item</strong> berikut dari master data barang? Tindakan ini tidak bisa dibatalkan.</p>
+      <ul style="margin:8px 0 0; padding-left:18px; max-height:220px; overflow-y:auto;">
+        ${items.map(i=>`<li style="margin-bottom:4px;"><strong>${i.d1}</strong> <span class="code-chip">${i.kode}</span></li>`).join('')}
+      </ul>
+      ${warn}
+    </div>
+    <div class="modal-foot">
+      <button class="btn" onclick="closeModal()">Batal</button>
+      <button class="btn btn-danger" onclick="bulkDeleteItems()">🗑️ Ya, Hapus Semua</button>
+    </div>
+  `);
+}
+function bulkDeleteItems(){
+  const ids=new Set(selectedItemIds);
+  const n=ids.size;
+  ITEMS = ITEMS.filter(i=>!ids.has(i.id));
+  selectedItemIds = new Set();
+  toast(`🗑️ ${n} barang dihapus dari master data`,'ok');
+  closeModal();
+  navigate('barang');
+}
+function openItemModal(id){
+  const item = id ? ITEMS.find(i=>i.id===id) : null;
+  openModal(`
+    <div class="modal-head"><h3>${item?'Edit':'Tambah'} Sparepart</h3><button class="close-x" onclick="closeModal()">✕</button></div>
+    <div class="modal-body">
+      <div class="field"><label>Kode / Barcode Part *</label>
+        <div style="display:flex;gap:8px;"><input id="fKode" value="${item?item.kode:''}"><button class="btn btn-sm" onclick="document.getElementById('fKode').value=genBarcode()">🎲 Generate</button></div>
+      </div>
+      <div class="field"><label>Deskripsi 1 (Nama Komponen) *</label><input id="fD1" value="${item?item.d1:''}" placeholder="Contoh: Oli Mesin Diesel 5W-30"></div>
+      <div class="field"><label>Deskripsi 2 (Spesifikasi/Kendaraan)</label><input id="fD2" value="${item?item.d2||'':''}" placeholder="Contoh: Cocok untuk Innova Diesel 2GD"></div>
+      <div class="field-row">
+        <div class="field"><label>Lemari Ke</label><input id="fLemariKe" value="${item?item.lemariKe||'':''}" placeholder="Contoh: A-01"></div>
+        <div class="field"><label>BOX</label><input id="fBox" value="${item?item.box||'':''}" placeholder="Contoh: 2"></div>
+      </div>
+      <div class="field-row">
+        <div class="field"><label>Kategori</label><input id="fKategori" value="${item?item.kategori:'Umum'}"></div>
+        <div class="field"><label>Satuan</label><input id="fSatuan" value="${item?item.satuan:'Pcs'}"></div>
+      </div>
+      <div class="field-row">
+        <div class="field"><label>QTY (awal)</label><input id="fStokAwal" type="number" value="${item&&item.stokAwal!=null?item.stokAwal:0}"></div>
+        <div class="field"><label>Stok Akhir Saat Ini</label><input id="fStok" type="number" value="${item?item.stok:0}"></div>
+      </div>
+      <div class="field-row">
+        <div class="field"><label>Stok Minimum (Alert)</label><input id="fStokMin" type="number" value="${item?item.stokMin:5}"></div>
+        <div class="field"><label>Harga Satuan (Rp)</label><input id="fHarga" type="number" value="${item?item.harga:0}"></div>
+      </div>
+      <div class="checkbox-row"><input type="checkbox" id="fIsTool" ${item&&item.isTool?'checked':''}><label style="margin:0;" for="fIsTool">Ini adalah alat kerja / SST (butuh peminjaman-pengembalian)</label></div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn" onclick="closeModal()">Batal</button>
+      <button class="btn btn-primary" onclick="saveItem('${item?item.id:''}')">💾 Simpan</button>
+    </div>
+  `);
+}
+function confirmDeleteItem(id){
+  const item = ITEMS.find(i=>i.id===id);
+  if(!item) return;
+  const usedInIncoming = INCOMING.some(tr=>tr.items.some(li=>li.kode===item.kode));
+  const usedInOutgoing = OUTGOING.some(tr=>tr.items.some(li=>li.kode===item.kode));
+  const usedInBorrow = BORROWS.some(b=>b.kode===item.kode);
+  let warn = '';
+  if(usedInIncoming||usedInOutgoing||usedInBorrow){
+    warn = `<div class="badge badge-warn" style="display:block;margin-top:10px;padding:10px;">⚠️ Barang ini punya riwayat transaksi (masuk/keluar/peminjaman). Riwayat lama akan tetap ada tapi akan tertulis "KODE TIDAK DITEMUKAN" pada laporan.</div>`;
+  }
+  openModal(`
+    <div class="modal-head"><h3>Hapus Barang?</h3><button class="close-x" onclick="closeModal()">✕</button></div>
+    <div class="modal-body">
+      <p>Anda yakin ingin menghapus <strong>${item.d1}</strong> (<span class="code-chip">${item.kode}</span>) dari master data barang? Tindakan ini tidak bisa dibatalkan.</p>
+      ${warn}
+    </div>
+    <div class="modal-foot">
+      <button class="btn" onclick="closeModal()">Batal</button>
+      <button class="btn btn-danger" onclick="deleteItem('${id}')">🗑️ Ya, Hapus</button>
+    </div>
+  `);
+}
+function deleteItem(id){
+  const idx = ITEMS.findIndex(i=>i.id===id);
+  if(idx>-1){ const removed=ITEMS.splice(idx,1)[0]; toast(`🗑️ "${removed.d1}" dihapus dari master data`,'ok'); }
+  closeModal();
+  navigate('barang');
+}
+function saveItem(id){
+  const kode=document.getElementById('fKode').value.trim();
+  const d1=document.getElementById('fD1').value.trim();
+  if(!kode || !d1){ toast('Kode dan Deskripsi wajib diisi','err'); return; }
+  const lemariKe=document.getElementById('fLemariKe').value.trim();
+  const box=document.getElementById('fBox').value.trim();
+  const data = {
+    kode, d1, d2:document.getElementById('fD2').value.trim(),
+    kategori:document.getElementById('fKategori').value.trim()||'Umum',
+    satuan:document.getElementById('fSatuan').value.trim()||'Pcs',
+    stokAwal:parseFloat(document.getElementById('fStokAwal').value)||0,
+    stok:parseFloat(document.getElementById('fStok').value)||0,
+    stokMin:parseFloat(document.getElementById('fStokMin').value)||5,
+    harga:parseFloat(document.getElementById('fHarga').value)||0,
+    lemariKe, box,
+    lokasi:[lemariKe,box].filter(Boolean).join(' / '),
+    isTool:document.getElementById('fIsTool').checked
+  };
+  if(id){ Object.assign(ITEMS.find(i=>i.id===id), data); toast('✅ Data barang diperbarui','ok'); }
+  else{ ITEMS.push({id:uid('IT'), ...data}); toast('✅ Barang baru ditambahkan','ok'); }
+  closeModal(); navigate('barang');
+}
+function printLabel(id){
+  const item=ITEMS.find(i=>i.id===id);
+  const w=window.open('', '_blank', 'width=420,height=320');
+  w.document.write(`<html><head><title>Label ${item.kode}</title><style>
+    body{font-family:sans-serif;text-align:center;padding:20px;}
+    svg{max-width:100%;}
+    .n{font-weight:700;font-size:13px;margin-top:6px;}
+    .s{font-size:11px;color:#555;}
+  </style></head><body>
+    <svg id="bc"></svg>
+    <div class="n">${item.d1}</div>
+    <div class="s">${item.d2||''}</div>
+    <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.6/dist/JsBarcode.all.min.js"><\/script>
+    <script>JsBarcode("#bc","${item.kode}",{format:"CODE128",displayValue:true,fontSize:14,height:60});window.print();<\/script>
+  </body></html>`);
+}
+function openQuickScanMode(mode){ openQuickScan(); window.__quickMode=mode; setTimeout(renderQuickModeTabs,50); }
+
+/* ============================= TRANSAKSI MASUK ============================= */
+let masukCart=[];
+function renderMasuk(){
+  masukCart=[];
+  document.getElementById('view-root').innerHTML = `
+    <div class="crumbs">Sistem Gudang / Transaksi</div>
+    <h1 class="page-title">Penerimaan Barang Masuk (Incoming)</h1>
+    <p class="page-desc">Catat penerimaan suku cadang dari vendor, scan barcode fisik, dan update stok otomatis.</p>
+    <div class="toolbar"><button class="btn" onclick="exportIncomingExcel()">⬇️ Export Rekap Masuk</button></div>
+
+    <div class="grid grid-2" style="align-items:start;">
+      <div class="card">
+        <div class="panel-title">Form Penerimaan Baru</div>
+        <div class="field-row">
+          <div class="field"><label>Tanggal</label><input type="date" id="mTanggal" value="${new Date().toISOString().slice(0,10)}"></div>
+          <div class="field"><label>Nama Vendor</label><input id="mVendor" placeholder="PT Astra Otoparts Tbk"></div>
+        </div>
+        <div class="field"><label>No. Invoice Vendor</label><input id="mInvoice" placeholder="INV-XXXX"></div>
+        <div class="field"><label>No. PO (DPM PO NO.)</label><input id="mPoNo" placeholder="PO-DPM-2026-XXX"></div>
+        <div class="field"><label>Scan / Cari Barcode Barang</label>
+          <div class="manual-scan-row">
+            <input id="mScanInput" placeholder="Ketik atau scan kode barang">
+            <button class="btn" onclick="openInlineScanner('mScanInput', addToMasukCart)">📷</button>
+            <button class="btn btn-primary" onclick="addToMasukCart(document.getElementById('mScanInput').value)">+ Tambah</button>
+          </div>
+        </div>
+        <div id="masukCartList"></div>
+        <button class="btn btn-primary" style="width:100%;justify-content:center;padding:12px;margin-top:10px;" onclick="saveMasuk()">✅ Simpan &amp; Update Stok Gudang</button>
+      </div>
+
+      <div class="card">
+        <div class="panel-title">Histori Penerimaan Terbaru</div>
+        <div class="table-wrap"><table>
+          <thead><tr><th>Tanggal</th><th>Vendor</th><th>Item</th><th>Total</th></tr></thead>
+          <tbody>${INCOMING.map(tr=>`<tr><td>${fmtDate(tr.tanggal)}</td><td>${tr.vendor}</td><td>${tr.items.length} SKU</td><td>${rupiah(tr.total)}</td></tr>`).join('') || '<tr><td colspan="4" class="empty">Belum ada transaksi</td></tr>'}</tbody>
+        </table></div>
+      </div>
+    </div>
+  `;
+}
+function addToMasukCart(kode){
+  kode=(kode||'').trim(); if(!kode) return;
+  const item=findItem(kode);
+  if(!item){ toast('❌ Barang dengan kode "'+kode+'" tidak ditemukan','err'); return; }
+  masukCart.push({kode:item.kode, qty:1, harga:item.harga});
+  document.getElementById('mScanInput').value='';
+  renderMasukCart();
+}
+function renderMasukCart(){
+  document.getElementById('masukCartList').innerHTML = masukCart.map((li,idx)=>{
+    const it=findItem(li.kode);
+    return `<div class="line-item">
+      <div class="info"><div class="n">${it.d1}</div><div class="c">${li.kode}</div></div>
+      <input class="qty" type="number" value="${li.qty}" min="1" onchange="masukCart[${idx}].qty=parseFloat(this.value)||1">
+      <button class="rm" onclick="masukCart.splice(${idx},1); renderMasukCart();">✕</button>
+    </div>`;
+  }).join('') || `<div class="empty" style="padding:16px;">Belum ada item — scan barcode untuk menambah</div>`;
+}
+function saveMasuk(){
+  if(!masukCart.length){ toast('Tambahkan minimal 1 barang','err'); return; }
+  const total = masukCart.reduce((s,li)=>s+li.qty*li.harga,0);
+  INCOMING.unshift({id:uid('IN'), tanggal:document.getElementById('mTanggal').value, vendor:document.getElementById('mVendor').value||'-', invoice:document.getElementById('mInvoice').value||'-', poNo:document.getElementById('mPoNo').value||'-', items:[...masukCart], total});
+  masukCart.forEach(li=>{ const it=findItem(li.kode); it.stok += li.qty; });
+  toast('✅ Barang masuk tersimpan & stok diperbarui','ok');
+  navigate('masuk');
+}
+
+/* ============================= TRANSAKSI KELUAR ============================= */
+let keluarCart=[];
+function renderKeluar(){
+  keluarCart=[];
+  document.getElementById('view-root').innerHTML = `
+    <div class="crumbs">Sistem Gudang / Transaksi</div>
+    <h1 class="page-title">Pengeluaran Barang Keluar (Outgoing)</h1>
+    <p class="page-desc">Catat pengeluaran suku cadang untuk pekerjaan servis berdasarkan SPK dan mekanik penanggung jawab.</p>
+    <div class="toolbar"><button class="btn" onclick="exportOutgoingExcel()">⬇️ Export Data Keluar</button></div>
+
+    <div class="grid grid-2" style="align-items:start;">
+      <div class="card">
+        <div class="panel-title">Form Transaksi Keluar</div>
+        <div class="field-row">
+          <div class="field"><label>No. SPK / Order Kerja</label><input id="kSpk" placeholder="SPK-2026-0895"></div>
+          <div class="field"><label>No. Polisi Kendaraan</label><input id="kNoPol" placeholder="B 1928 DKM"></div>
+        </div>
+        <div class="field-row">
+          <div class="field"><label>Tipe Mobil</label><input id="kTipe" placeholder="Toyota Innova Reborn 2.4 G A/T"></div>
+          <div class="field"><label>KM Kendaraan</label><input id="kKm" type="number" placeholder="68450"></div>
+        </div>
+        <div class="field"><label>Customer</label><input id="kCustomer" placeholder="PT. Anugerah Logistik Express"></div>
+        <div class="field"><label>Mekanik Pengambil *</label>${mekanikSelect('kMekanik')}</div>
+        <div class="field"><label>Scan / Cari Barcode Barang</label>
+          <div class="manual-scan-row">
+            <input id="kScanInput" placeholder="Ketik atau scan kode barang">
+            <button class="btn" onclick="openInlineScanner('kScanInput', addToKeluarCart)">📷</button>
+            <button class="btn btn-primary" onclick="addToKeluarCart(document.getElementById('kScanInput').value)">+ Tambah</button>
+          </div>
+        </div>
+        <div id="keluarCartList"></div>
+        <button class="btn btn-primary" style="width:100%;justify-content:center;padding:12px;margin-top:10px;" onclick="saveKeluar()">✅ Konfirmasi Pengeluaran &amp; Potong Stok</button>
+      </div>
+
+      <div class="card">
+        <div class="panel-title">Histori Pengeluaran Terbaru</div>
+        <div class="table-wrap"><table>
+          <thead><tr><th>No. Keluar</th><th>SPK / No.Pol</th><th>Mekanik</th><th>Total</th></tr></thead>
+          <tbody>${OUTGOING.map(tr=>`<tr><td>${tr.id}</td><td>${tr.spk}<br><span class="desc-secondary">${tr.noPol}</span></td><td>${mekanikNama(tr.mekanikId)}</td><td>${rupiah(tr.total)}</td></tr>`).join('') || '<tr><td colspan="4" class="empty">Belum ada transaksi</td></tr>'}</tbody>
+        </table></div>
+      </div>
+    </div>
+  `;
+}
+function addToKeluarCart(kode){
+  kode=(kode||'').trim(); if(!kode) return;
+  const item=findItem(kode);
+  if(!item){ toast('❌ Barang dengan kode "'+kode+'" tidak ditemukan','err'); return; }
+  if(item.stok<=0){ toast('⚠️ Stok "'+item.d1+'" habis','err'); return; }
+  keluarCart.push({kode:item.kode, qty:1, harga:item.harga});
+  document.getElementById('kScanInput').value='';
+  renderKeluarCart();
+}
+function renderKeluarCart(){
+  document.getElementById('keluarCartList').innerHTML = keluarCart.map((li,idx)=>{
+    const it=findItem(li.kode);
+    return `<div class="line-item">
+      <div class="info"><div class="n">${it.d1}</div><div class="c">${li.kode} · Stok: ${it.stok} ${it.satuan}</div></div>
+      <input class="qty" type="number" value="${li.qty}" min="1" max="${it.stok}" onchange="keluarCart[${idx}].qty=parseFloat(this.value)||1">
+      <button class="rm" onclick="keluarCart.splice(${idx},1); renderKeluarCart();">✕</button>
+    </div>`;
+  }).join('') || `<div class="empty" style="padding:16px;">Belum ada item — scan barcode untuk menambah</div>`;
+}
+function saveKeluar(){
+  if(!keluarCart.length){ toast('Tambahkan minimal 1 barang','err'); return; }
+  for(const li of keluarCart){ const it=findItem(li.kode); if(li.qty>it.stok){ toast('❌ Qty "'+it.d1+'" melebihi stok tersedia','err'); return; } }
+  const total = keluarCart.reduce((s,li)=>s+li.qty*li.harga,0);
+  OUTGOING.unshift({id:uid('OUT'), tanggal:new Date().toISOString().slice(0,10), spk:document.getElementById('kSpk').value||'-', noPol:document.getElementById('kNoPol').value||'-', tipeMobil:document.getElementById('kTipe').value||'-', customer:document.getElementById('kCustomer').value||'-', mekanikId:document.getElementById('kMekanik').value, km:parseFloat(document.getElementById('kKm').value)||0, items:[...keluarCart], total});
+  keluarCart.forEach(li=>{ const it=findItem(li.kode); it.stok -= li.qty; });
+  toast('✅ Barang keluar tersimpan & stok dipotong','ok');
+  navigate('keluar');
+}
+
+/* inline scanner used inside masuk/keluar forms */
+function openInlineScanner(targetInputId, onFound){
+  openModal(`
+    <div class="modal-head"><h3>📷 Scan Barcode</h3><button class="close-x" onclick="closeModal()">✕</button></div>
+    <div class="modal-body">${scannerBlock('inlineScanInput')}</div>
+  `);
+  registerScanContext('inlineScanInput', code=>{
+    const targetEl = document.getElementById(targetInputId);
+    if(targetEl) targetEl.value=code;
+    closeModal();
+    onFound(code);
+  });
+}
+
+/* ============================= PEMINJAMAN & KEMBALI ============================= */
+function renderPinjam(){
+  document.getElementById('view-root').innerHTML = `
+    <div class="crumbs">Sistem Gudang / Transaksi</div>
+    <h1 class="page-title">Peminjaman &amp; Pengembalian Alat Kerja</h1>
+    <p class="page-desc">Monitoring sirkulasi peminjaman alat khusus bengkel (SST &amp; Diagnostic Tools) berbasis barcode.</p>
+    <div class="toolbar"><button class="btn" onclick="exportBorrowExcel()">⬇️ Export Rekap Alat</button></div>
+
+    <div class="grid grid-2" style="align-items:start;">
+      <div class="card">
+        <div class="panel-title">🔧 Ambil / Pinjam Alat</div>
+        <div class="field"><label>Scan Barcode Alat</label>
+          <div class="manual-scan-row">
+            <input id="pAmbilInput" placeholder="Scan / ketik kode alat">
+            <button class="btn" onclick="openInlineScanner('pAmbilInput', lookupToolForBorrow)">📷</button>
+            <button class="btn btn-primary" onclick="lookupToolForBorrow(document.getElementById('pAmbilInput').value)">Cari</button>
+          </div>
+        </div>
+        <div id="pAmbilResult"></div>
+      </div>
+      <div class="card">
+        <div class="panel-title">↩️ Kembalikan Alat</div>
+        <div class="field"><label>Scan Barcode Alat</label>
+          <div class="manual-scan-row">
+            <input id="pKembaliInput" placeholder="Scan / ketik kode alat">
+            <button class="btn" onclick="openInlineScanner('pKembaliInput', lookupToolForReturn)">📷</button>
+            <button class="btn btn-primary" onclick="lookupToolForReturn(document.getElementById('pKembaliInput').value)">Cari</button>
+          </div>
+        </div>
+        <div id="pKembaliResult"></div>
+      </div>
+    </div>
+
+    <div class="card" style="margin-top:14px;">
+      <div class="panel-title">Alat Sedang Dipinjam</div>
+      <div class="table-wrap"><table>
+        <thead><tr><th>Alat</th><th>Dipinjam Oleh</th><th>Waktu Ambil</th><th>Status</th></tr></thead>
+        <tbody id="borrowActiveTbody"></tbody>
+      </table></div>
+    </div>
+    <div class="card" style="margin-top:14px;">
+      <div class="panel-title">Riwayat Pengembalian</div>
+      <div class="table-wrap"><table>
+        <thead><tr><th>Alat</th><th>Dipinjam Oleh</th><th>Dikembalikan Oleh</th><th>Waktu Kembali</th></tr></thead>
+        <tbody id="borrowHistoryTbody"></tbody>
+      </table></div>
+    </div>
+  `;
+  renderBorrowTables();
+}
+function renderBorrowTables(){
+  const active = BORROWS.filter(b=>b.status==='dipinjam');
+  const done = BORROWS.filter(b=>b.status==='kembali');
+  document.getElementById('borrowActiveTbody').innerHTML = active.map(b=>{
+    const it=findItem(b.kode); const overdue=isOverdue(b);
+    return `<tr class="${overdue?'overdue-row':''}"><td><div class="desc-primary">${it?it.d1:b.kode}</div><span class="code-chip">${b.kode}</span></td><td>${mekanikNama(b.mekanikAmbilId)}</td><td>${fmtDateTime(b.waktuAmbil)}</td><td><span class="badge ${overdue?'badge-danger':'badge-warn'}">${overdue?'Overdue':'Dipinjam'}</span></td></tr>`;
+  }).join('') || `<tr><td colspan="4" class="empty">Tidak ada alat yang sedang dipinjam</td></tr>`;
+  document.getElementById('borrowHistoryTbody').innerHTML = done.slice(0,10).map(b=>{
+    const it=findItem(b.kode);
+    return `<tr><td><div class="desc-primary">${it?it.d1:b.kode}</div><span class="code-chip">${b.kode}</span></td><td>${mekanikNama(b.mekanikAmbilId)}</td><td>${mekanikNama(b.mekanikKembaliId)}</td><td>${fmtDateTime(b.waktuKembali)}</td></tr>`;
+  }).join('') || `<tr><td colspan="4" class="empty">Belum ada riwayat pengembalian</td></tr>`;
+}
+function lookupToolForBorrow(kode){
+  kode=(kode||'').trim(); const item=findItem(kode);
+  if(!item){ document.getElementById('pAmbilResult').innerHTML=`<div class="badge badge-danger">Barcode tidak ditemukan</div>`; return; }
+  const alreadyBorrowed = BORROWS.find(b=>b.kode===item.kode && b.status==='dipinjam');
+  if(alreadyBorrowed){ document.getElementById('pAmbilResult').innerHTML=`<div class="item-found"><div class="name">${item.d1}</div><div class="sub">Sedang dipinjam oleh <strong>${mekanikNama(alreadyBorrowed.mekanikAmbilId)}</strong>, belum dikembalikan.</div></div>`; return; }
+  document.getElementById('pAmbilResult').innerHTML = `<div class="item-found">
+    <div class="code">${item.kode}</div><div class="name">${item.d1}</div><div class="sub">${item.d2||''}</div>
+    <div class="field" style="margin-top:12px;"><label>Mekanik Peminjam</label>${mekanikSelect('pAmbilMekanik')}</div>
+    <div class="field"><label>No. SPK (opsional)</label><input id="pAmbilSpk" placeholder="SPK-2026-XXXX"></div>
+    <button class="btn btn-primary" style="width:100%;justify-content:center;padding:11px;" onclick="confirmBorrow('${item.kode}')">✅ Konfirmasi Serah Terima Alat</button>
+  </div>`;
+}
+function confirmBorrow(kode){
+  const mekId=document.getElementById('pAmbilMekanik').value;
+  const spk=document.getElementById('pAmbilSpk').value||'-';
+  BORROWS.unshift({id:uid('BOR'), kode, mekanikAmbilId:mekId, spk, waktuAmbil:nowISO(), status:'dipinjam', mekanikKembaliId:null, waktuKembali:null});
+  toast(`🔧 Alat dipinjam oleh ${mekanikNama(mekId)}`,'ok');
+  navigate('pinjam');
+}
+function lookupToolForReturn(kode){
+  kode=(kode||'').trim(); const item=findItem(kode);
+  if(!item){ document.getElementById('pKembaliResult').innerHTML=`<div class="badge badge-danger">Barcode tidak ditemukan</div>`; return; }
+  const b = BORROWS.find(x=>x.kode===item.kode && x.status==='dipinjam');
+  if(!b){ document.getElementById('pKembaliResult').innerHTML=`<div class="badge badge-neutral">Tidak ada peminjaman aktif untuk alat ini</div>`; return; }
+  document.getElementById('pKembaliResult').innerHTML = `<div class="item-found">
+    <div class="code">${item.kode}</div><div class="name">${item.d1}</div>
+    <div class="sub">Dipinjam oleh <strong>${mekanikNama(b.mekanikAmbilId)}</strong> sejak ${fmtDateTime(b.waktuAmbil)}</div>
+    <div class="field" style="margin-top:12px;"><label>Dikembalikan oleh</label>${mekanikSelect('pKembaliMekanik')}</div>
+    <button class="btn btn-primary" style="width:100%;justify-content:center;padding:11px;" onclick="confirmReturn('${b.id}')">✅ Konfirmasi Pengembalian</button>
+  </div>`;
+}
+function confirmReturn(borrowId){
+  const b=BORROWS.find(x=>x.id===borrowId);
+  const mekId=document.getElementById('pKembaliMekanik').value;
+  b.status='kembali'; b.mekanikKembaliId=mekId; b.waktuKembali=nowISO();
+  toast(`↩️ Alat dikembalikan oleh ${mekanikNama(mekId)}`,'ok');
+  navigate('pinjam');
+}
+
+/* ============================= SCAN BARCODE LAPANGAN (mobile) ============================= */
+let fieldMode='keluar';
+function renderScanLapangan(){
+  document.getElementById('view-root').innerHTML = `
+    <div class="phone-shell">
+      <div class="crumbs" style="text-align:center;">Mode Transaksi Lapangan</div>
+      <h1 class="page-title" style="text-align:center;font-size:20px;">📱 Scan Barcode Lapangan</h1>
+      <p class="page-desc" style="text-align:center;margin:0 auto 16px;">Halaman ini bisa dibuka langsung dari browser HP untuk transaksi cepat di gudang.</p>
+
+      <div class="mode-grid">
+        <div class="mode-btn ${fieldMode==='keluar'?'active':''}" onclick="setFieldMode('keluar')"><span class="ic">⬆️</span>Barang Keluar</div>
+        <div class="mode-btn ${fieldMode==='masuk'?'active':''}" onclick="setFieldMode('masuk')"><span class="ic">⬇️</span>Barang Masuk</div>
+        <div class="mode-btn ${fieldMode==='pinjam'?'active':''}" onclick="setFieldMode('pinjam')"><span class="ic">🔧</span>Pinjam Alat</div>
+        <div class="mode-btn ${fieldMode==='kembali'?'active':''}" onclick="setFieldMode('kembali')"><span class="ic">↩️</span>Kembali Alat</div>
+      </div>
+
+      <div class="card">
+        ${scannerBlock('fieldScanInput')}
+        <div id="fieldResult"></div>
+      </div>
+    </div>
+  `;
+  registerScanContext('fieldScanInput', handleFieldScan);
+}
+function setFieldMode(mode){ stopScanner(); fieldMode=mode; renderScanLapangan(); }
+function handleFieldScan(code){
+  stopScanner();
+  const item=findItem(code);
+  if(!item){ document.getElementById('fieldResult').innerHTML = `<div class="item-found"><strong>❌ Barcode "${escapeHtml(code)}" tidak ditemukan</strong></div>`; return; }
+  document.getElementById('fieldResult').innerHTML = itemFoundCardWithAction(item, fieldMode);
+}
+
+/* ============================= MASTER MEKANIK ============================= */
+function renderMekanik(){
+  document.getElementById('view-root').innerHTML = `
+    <div class="crumbs">Sistem Gudang / Pengaturan Pengguna</div>
+    <h1 class="page-title">Master Mekanik &amp; Hak Akses</h1>
+    <p class="page-desc">Kelola data teknisi bengkel yang tercatat sebagai pengambil / pengembali barang via barcode.</p>
+    <div class="toolbar"><button class="btn btn-primary" onclick="openMekanikModal()">+ Tambah Mekanik</button></div>
+    <div class="card">
+      <div class="table-wrap"><table>
+        <thead><tr><th>Nama</th><th>ID</th><th>Grade</th><th>Bay</th><th>Status</th><th>Aksi</th></tr></thead>
+        <tbody id="mekanikTbody"></tbody>
+      </table></div>
+    </div>
+  `;
+  renderMekanikTable();
+}
+function renderMekanikTable(){
+  document.getElementById('mekanikTbody').innerHTML = MEKANIK.map(m=>`<tr>
+    <td class="desc-primary">${m.nama}</td><td><span class="code-chip">${m.id}</span></td><td>${m.grade}</td><td>${m.bay}</td>
+    <td><span class="badge ${m.status==='Aktif'?'badge-good':'badge-neutral'}">${m.status}</span></td>
+    <td><button class="btn btn-sm" onclick="openMekanikModal('${m.id}')">Edit</button></td>
+  </tr>`).join('') || `<tr><td colspan="6" class="empty">Belum ada data mekanik</td></tr>`;
+}
+function openMekanikModal(id){
+  const m = id? MEKANIK.find(x=>x.id===id) : null;
+  openModal(`
+    <div class="modal-head"><h3>${m?'Edit':'Tambah'} Mekanik</h3><button class="close-x" onclick="closeModal()">✕</button></div>
+    <div class="modal-body">
+      <div class="field"><label>Nama Lengkap *</label><input id="mkNama" value="${m?m.nama:''}"></div>
+      <div class="field-row">
+        <div class="field"><label>Grade / Level</label><input id="mkGrade" value="${m?m.grade:'Mekanik Umum'}"></div>
+        <div class="field"><label>Bay Servis</label><input id="mkBay" value="${m?m.bay:'Bay 1'}"></div>
+      </div>
+      <div class="field"><label>Status</label><select id="mkStatus"><option ${m&&m.status==='Aktif'?'selected':''}>Aktif</option><option ${m&&m.status==='Nonaktif'?'selected':''}>Nonaktif</option></select></div>
+    </div>
+    <div class="modal-foot"><button class="btn" onclick="closeModal()">Batal</button><button class="btn btn-primary" onclick="saveMekanik('${m?m.id:''}')">💾 Simpan</button></div>
+  `);
+}
+function saveMekanik(id){
+  const nama=document.getElementById('mkNama').value.trim();
+  if(!nama){ toast('Nama wajib diisi','err'); return; }
+  const data={nama, grade:document.getElementById('mkGrade').value, bay:document.getElementById('mkBay').value, status:document.getElementById('mkStatus').value};
+  if(id){ Object.assign(MEKANIK.find(m=>m.id===id), data); toast('✅ Data mekanik diperbarui','ok'); }
+  else{ MEKANIK.push({id:uid('MEK'), ...data}); toast('✅ Mekanik baru ditambahkan','ok'); }
+  closeModal(); navigate('mekanik');
+}
+
+/* ============================= LAPORAN & EKSPOR ============================= */
+function renderLaporan(){
+  const totalValue = ITEMS.reduce((s,i)=>s+i.stok*i.harga,0);
+  const totalMasukBulanIni = INCOMING.reduce((s,tr)=>s+tr.total,0);
+  const totalKeluarBulanIni = OUTGOING.reduce((s,tr)=>s+tr.total,0);
+  document.getElementById('view-root').innerHTML = `
+    <div class="crumbs">Sistem Gudang / Analitik &amp; Audit</div>
+    <h1 class="page-title">Laporan &amp; Ekspor Analitik Stok</h1>
+    <p class="page-desc">Rekapitulasi mutasi stok masuk-keluar dan valuasi inventaris gudang, siap diekspor ke Excel.</p>
+
+    <div class="grid grid-3" style="margin-bottom:16px;">
+      <div class="card stat-card good"><div class="label">Valuasi Total Stok</div><div class="value">${rupiah(totalValue)}</div></div>
+      <div class="card stat-card"><div class="label">Total Masuk (Semua Transaksi)</div><div class="value">${rupiah(totalMasukBulanIni)}</div></div>
+      <div class="card stat-card"><div class="label">Total Keluar (Semua Transaksi)</div><div class="value">${rupiah(totalKeluarBulanIni)}</div></div>
+    </div>
+
+    <div class="card">
+      <div class="panel-title">📄 Format Template Asli Bengkel (MASTER_STOCK_LIST.xlsx)</div>
+      <div class="panel-sub">Satu file Excel berisi 3 sheet (STOCK LIST, INCOMING, OUTGOING) — persis format yang biasa dipakai bengkel.</div>
+      <div class="toolbar">
+        <button class="btn btn-primary" onclick="exportMasterTemplateExcel()">⬇️ Export MASTER_STOCK_LIST.xlsx (3 Sheet)</button>
+        <label class="btn" style="margin:0;">⬆️ Import dari MASTER_STOCK_LIST.xlsx<input type="file" accept=".xlsx,.xls,.csv" style="display:none" onchange="importTemplateExcel(this)"></label>
+      </div>
+    </div>
+
+    <div class="card" style="margin-top:14px;">
+      <div class="panel-title">Ekspor per Sheet</div>
+      <div class="panel-sub">Unduh masing-masing sheet secara terpisah kalau hanya butuh salah satu.</div>
+      <div class="toolbar">
+        <button class="btn btn-dark" onclick="exportItemsExcel()">⬇️ STOCK LIST</button>
+        <button class="btn btn-dark" onclick="exportIncomingExcel()">⬇️ INCOMING</button>
+        <button class="btn btn-dark" onclick="exportOutgoingExcel()">⬇️ OUTGOING</button>
+        <button class="btn btn-dark" onclick="exportBorrowExcel()">⬇️ Peminjaman Alat</button>
+      </div>
+    </div>
+
+    <div class="card" style="margin-top:14px;">
+      <div class="panel-title">Mutasi Kartu Stok</div>
+      <div class="table-wrap"><table>
+        <thead><tr><th>Part No &amp; Barcode</th><th>Lemari / BOX</th><th>Qty Awal</th><th>Masuk</th><th>Keluar</th><th>Stok Akhir</th><th>Total Valuasi</th></tr></thead>
+        <tbody>${ITEMS.map(i=>`<tr><td><div class="desc-primary">${i.d1}</div><span class="code-chip">${i.kode}</span></td><td>${i.lemariKe||'-'} / ${i.box||'-'}</td><td>${i.stokAwal!=null?i.stokAwal:'-'}</td><td>${itemIncomingQty(i.kode)}</td><td>${itemOutgoingQty(i.kode)}</td><td>${i.stok} ${i.satuan}</td><td>${rupiah(i.stok*i.harga)}</td></tr>`).join('')}</tbody>
+      </table></div>
+    </div>
+
+  `;
+}
+
+/* ============================= INIT ============================= */
+buildNav();
+navigate('dashboard');
+showRoleLogin();
+
+if ('serviceWorker' in navigator && location.protocol.startsWith('http')) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('sw.js').catch(()=>{});
+  });
+}
+if (!window.isSecureContext) {
+  console.warn('Halaman ini tidak berjalan dalam mode aman (HTTPS/localhost). Live camera scan mungkin diblokir browser.');
+}
+</script>
+</body>
+</html>
