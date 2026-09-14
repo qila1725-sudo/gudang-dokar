@@ -289,6 +289,9 @@ let BORROWS = [
   {id:'BOR-0082', kode:'SST-SCAN-004', mekanikAmbilId:'MEK-03', spk:'SPK-2026-0895', waktuAmbil:daysAgoISO(4), status:'dipinjam', mekanikKembaliId:null, waktuKembali:null},
   {id:'BOR-0085', kode:'SST-SUSP-012', mekanikAmbilId:'MEK-11', spk:'SPK-2026-0901', waktuAmbil:daysAgoISO(1), status:'dipinjam', mekanikKembaliId:null, waktuKembali:null},
 ];
+let PENDINGAN = [
+  {id:'PND-0001', tanggal:'2026-09-12', noPol:'B 1928 DKM', namaPT:'PT. Anugerah Logistik Express', namaMekanik:'Hendra Setiawan', namaPart:'Filter Oli 04465-0K140', status:'belum'},
+];
 
 function daysAgoISO(n){ let d=new Date(); d.setDate(d.getDate()-n); return d.toISOString(); }
 function nowISO(){ return new Date().toISOString(); }
@@ -309,6 +312,7 @@ const NAV_ITEMS = [
   {id:'masuk', icon:'⬇️', label:'Transaksi Masuk'},
   {id:'keluar', icon:'⬆️', label:'Transaksi Keluar'},
   {id:'pinjam', icon:'🔧', label:'Peminjaman & Kembali'},
+  {id:'pendingan', icon:'⏳', label:'Pendingan Part'},
   {id:'scan', icon:'📱', label:'Scan Barcode Lapangan'},
   {id:'mekanik', icon:'👤', label:'Master Mekanik'},
   {id:'laporan', icon:'📑', label:'Laporan & Ekspor'},
@@ -327,10 +331,16 @@ const sb = (SUPABASE_URL.startsWith('http') && window.supabase)
 const ROLE_MAP = {
   'gudang@dokar.local':  {role:'gudang',  name:'Staff Gudang', avatar:'SG', roleLabel:'Admin'},
   'mekanik@dokar.local': {role:'mekanik', name:'Mekanik',      avatar:'MK', roleLabel:'Bengkel'},
+  'maintenance@dokar.local': {role:'admin_maintenance', name:'Admin Maintenance', avatar:'AM', roleLabel:'Maintenance'},
 };
 
 let CURRENT_ROLE = null;
-const ALLOWED_FOR_MEKANIK = ['scan','mekanik'];
+/* Role dengan akses penuh ke semua menu (setara Staff Gudang) */
+const FULL_ACCESS_ROLES = ['gudang','admin_maintenance'];
+/* Role yang boleh menandai status part jadi Ready / Belum Ready */
+const CAN_MANAGE_PENDINGAN = ['gudang','admin_maintenance'];
+/* Menu yang tetap boleh diakses Mekanik walau tidak full access */
+const ALLOWED_FOR_MEKANIK = ['scan','mekanik','pendingan'];
 const DEFAULT_VIEW_MEKANIK = 'scan';
 
 function showRoleLogin(){
@@ -392,7 +402,7 @@ function applySession(session){
   document.getElementById('userRole').textContent = mapped.roleLabel;
   closeModal();
   buildNav();
-  if(CURRENT_ROLE==='mekanik' && !ALLOWED_FOR_MEKANIK.includes(CURRENT_VIEW)){
+  if(!FULL_ACCESS_ROLES.includes(CURRENT_ROLE) && !ALLOWED_FOR_MEKANIK.includes(CURRENT_VIEW)){
     navigate(DEFAULT_VIEW_MEKANIK);
   } else {
     navigate(CURRENT_VIEW);
@@ -420,10 +430,11 @@ async function checkExistingSession(){
 
 function buildNav(){
   const nav = document.getElementById('nav');
-  const visibleItems = NAV_ITEMS.filter(n => CURRENT_ROLE!=='mekanik' || ALLOWED_FOR_MEKANIK.includes(n.id));
+  const visibleItems = NAV_ITEMS.filter(n => FULL_ACCESS_ROLES.includes(CURRENT_ROLE) || ALLOWED_FOR_MEKANIK.includes(n.id));
   nav.innerHTML = visibleItems.map(n=>{
     let badge='';
     if(n.id==='pinjam'){ const overdue = BORROWS.filter(b=>b.status==='dipinjam' && isOverdue(b)).length; if(overdue>0) badge=`<span class="nav-badge">${overdue} Overdue</span>`; }
+    if(n.id==='pendingan'){ const belum = PENDINGAN.filter(p=>p.status==='belum').length; if(belum>0) badge=`<span class="nav-badge">${belum} Pending</span>`; }
     return `<div class="nav-item ${CURRENT_VIEW===n.id?'active':''}" onclick="navigate('${n.id}')">
       <span class="nav-icon">${n.icon}</span><span>${n.label}</span>${badge}
     </div>`;
@@ -432,7 +443,7 @@ function buildNav(){
 function isOverdue(b){ const days=(Date.now()-new Date(b.waktuAmbil))/86400000; return days>3; }
 
 function navigate(view){
-  if(CURRENT_ROLE==='mekanik' && !ALLOWED_FOR_MEKANIK.includes(view)){
+  if(!FULL_ACCESS_ROLES.includes(CURRENT_ROLE) && !ALLOWED_FOR_MEKANIK.includes(view)){
     const label = (NAV_ITEMS.find(n=>n.id===view)||{}).label || view;
     toast(`🚫 Akses ditolak — "${label}" khusus untuk Staff Gudang`,'err');
     view=DEFAULT_VIEW_MEKANIK;
@@ -441,7 +452,7 @@ function navigate(view){
   CURRENT_VIEW = view;
   buildNav();
   toggleSidebar(false);
-  const renderers = {dashboard:renderDashboard, barang:renderBarang, masuk:renderMasuk, keluar:renderKeluar, pinjam:renderPinjam, scan:renderScanLapangan, mekanik:renderMekanik, laporan:renderLaporan};
+  const renderers = {dashboard:renderDashboard, barang:renderBarang, masuk:renderMasuk, keluar:renderKeluar, pinjam:renderPinjam, pendingan:renderPendingan, scan:renderScanLapangan, mekanik:renderMekanik, laporan:renderLaporan};
   document.getElementById('view-root').innerHTML='';
   renderers[view]();
   window.scrollTo(0,0);
@@ -1426,6 +1437,104 @@ function handleFieldScan(code){
   const item=findItem(code);
   if(!item){ document.getElementById('fieldResult').innerHTML = `<div class="item-found"><strong>❌ Barcode "${escapeHtml(code)}" tidak ditemukan</strong></div>`; return; }
   document.getElementById('fieldResult').innerHTML = itemFoundCardWithAction(item, fieldMode);
+}
+
+/* ============================= PENDINGAN PART ============================= */
+let PENDINGS = [];
+function renderPendingan(){
+  const canManage = CAN_MANAGE_PENDINGAN.includes(CURRENT_ROLE);
+  document.getElementById('view-root').innerHTML = `
+    <div class="crumbs">Sistem Gudang / Permintaan Part</div>
+    <h1 class="page-title">Pendingan Part</h1>
+    <p class="page-desc">Daftar part yang diminta mekanik tapi belum tersedia / masih menunggu pengadaan gudang.</p>
+    <div class="toolbar">
+      <button class="btn btn-primary" onclick="openPendingModal()">+ Tambah Pendingan</button>
+    </div>
+    <div class="card">
+      <div class="table-wrap"><table>
+        <thead><tr>
+          <th>Tanggal</th><th>No. Polisi</th><th>Nama PT</th><th>Nama Mekanik</th><th>Part Diminta</th><th>Status</th><th>Aksi</th>
+        </tr></thead>
+        <tbody id="pendingTbody"></tbody>
+      </table></div>
+    </div>
+  `;
+  renderPendingTable();
+}
+function renderPendingTable(){
+  const canManage = CAN_MANAGE_PENDINGAN.includes(CURRENT_ROLE);
+  const tbody=document.getElementById('pendingTbody');
+  const rows = [...PENDINGS].sort((a,b)=> new Date(b.tanggal) - new Date(a.tanggal));
+  tbody.innerHTML = rows.map(p=>`<tr>
+    <td>${formatTanggal(p.tanggal)}</td>
+    <td><span class="code-chip">${escapeHtml(p.nopol)}</span></td>
+    <td>${escapeHtml(p.namaPT)}</td>
+    <td>${escapeHtml(p.namaMekanik)}</td>
+    <td><div class="desc-primary">${escapeHtml(p.part)}</div>${p.catatan?`<div class="desc-secondary">${escapeHtml(p.catatan)}</div>`:''}</td>
+    <td>${p.status==='Ready' ? '<span class="badge badge-good">✅ Ready</span>' : '<span class="badge badge-warn">⏳ Belum Ready</span>'}</td>
+    <td>
+      ${canManage ? `
+        <button class="btn btn-sm ${p.status==='Ready'?'':'btn-primary'}" onclick="togglePendingStatus('${p.id}')">${p.status==='Ready' ? 'Tandai Belum' : '✅ Tandai Ready'}</button>
+        <button class="btn btn-sm btn-danger" onclick="deletePending('${p.id}')">🗑️</button>
+      ` : `<span style="color:var(--ink-soft);font-size:12px;">Menunggu Gudang</span>`}
+    </td>
+  </tr>`).join('') || `<tr><td colspan="7" class="empty">Belum ada pendingan part</td></tr>`;
+}
+function formatTanggal(iso){
+  if(!iso) return '-';
+  const d=new Date(iso);
+  if(isNaN(d)) return iso;
+  return d.toLocaleDateString('id-ID',{day:'2-digit',month:'short',year:'numeric'});
+}
+function openPendingModal(){
+  const today = new Date().toISOString().slice(0,10);
+  const mekanikOptions = MEKANIK.map(m=>`<option value="${escapeHtml(m.nama)}">${escapeHtml(m.nama)}</option>`).join('');
+  openModal(`
+    <div class="modal-head"><h3>Tambah Pendingan Part</h3><button class="close-x" onclick="closeModal()">✕</button></div>
+    <div class="modal-body">
+      <div class="field-row">
+        <div class="field"><label>Tanggal *</label><input type="date" id="pdTanggal" value="${today}"></div>
+        <div class="field"><label>No. Polisi *</label><input id="pdNopol" placeholder="cth. B 1234 XYZ"></div>
+      </div>
+      <div class="field"><label>Nama PT *</label><input id="pdPT" placeholder="Nama perusahaan pemilik kendaraan"></div>
+      <div class="field"><label>Nama Mekanik *</label>
+        <select id="pdMekanik">
+          <option value="">— Pilih Mekanik —</option>
+          ${mekanikOptions}
+        </select>
+      </div>
+      <div class="field"><label>Part yang Diminta *</label><input id="pdPart" placeholder="Nama / deskripsi part"></div>
+      <div class="field"><label>Catatan (opsional)</label><input id="pdCatatan" placeholder="cth. urgent, buat unit servis besar, dll"></div>
+    </div>
+    <div class="modal-foot"><button class="btn" onclick="closeModal()">Batal</button><button class="btn btn-primary" onclick="savePending()">💾 Simpan</button></div>
+  `);
+}
+function savePending(){
+  const tanggal=document.getElementById('pdTanggal').value;
+  const nopol=document.getElementById('pdNopol').value.trim();
+  const namaPT=document.getElementById('pdPT').value.trim();
+  const namaMekanik=document.getElementById('pdMekanik').value;
+  const part=document.getElementById('pdPart').value.trim();
+  const catatan=document.getElementById('pdCatatan').value.trim();
+  if(!tanggal || !nopol || !namaPT || !namaMekanik || !part){ toast('Lengkapi dulu semua data wajib (*)','err'); return; }
+  PENDINGS.push({id:uid('PEND'), tanggal, nopol, namaPT, namaMekanik, part, catatan, status:'Belum Ready'});
+  toast('✅ Pendingan part ditambahkan','ok');
+  closeModal();
+  navigate('pendingan');
+}
+function togglePendingStatus(id){
+  if(!CAN_MANAGE_PENDINGAN.includes(CURRENT_ROLE)){ toast('🚫 Hanya Staff Gudang / Admin Maintenance yang bisa mengubah status','err'); return; }
+  const p=PENDINGS.find(x=>x.id===id);
+  if(!p) return;
+  p.status = p.status==='Ready' ? 'Belum Ready' : 'Ready';
+  toast(p.status==='Ready' ? '✅ Ditandai Ready' : '↩️ Ditandai Belum Ready','ok');
+  renderPendingTable();
+}
+function deletePending(id){
+  if(!CAN_MANAGE_PENDINGAN.includes(CURRENT_ROLE)){ toast('🚫 Hanya Staff Gudang / Admin Maintenance yang bisa menghapus','err'); return; }
+  PENDINGS = PENDINGS.filter(x=>x.id!==id);
+  toast('🗑️ Pendingan dihapus','ok');
+  renderPendingTable();
 }
 
 /* ============================= MASTER MEKANIK ============================= */
