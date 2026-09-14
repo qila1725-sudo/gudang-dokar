@@ -865,6 +865,7 @@ function renderItemsTable(){
       <td>
         <button class="btn btn-sm" onclick="openItemModal('${i.id}')">Edit</button>
         <button class="btn btn-sm" onclick="printLabel('${i.id}')">🏷️ Label</button>
+        <button class="btn btn-sm btn-danger" onclick="confirmDeleteItem('${i.id}')">🗑️ Hapus</button>
       </td>
     </tr>`;
   }).join('') || `<tr><td colspan="8" class="empty">Belum ada data barang</td></tr>`;
@@ -902,6 +903,34 @@ function openItemModal(id){
       <button class="btn btn-primary" onclick="saveItem('${item?item.id:''}')">💾 Simpan</button>
     </div>
   `);
+}
+function confirmDeleteItem(id){
+  const item = ITEMS.find(i=>i.id===id);
+  if(!item) return;
+  const usedInIncoming = INCOMING.some(tr=>tr.items.some(li=>li.kode===item.kode));
+  const usedInOutgoing = OUTGOING.some(tr=>tr.items.some(li=>li.kode===item.kode));
+  const usedInBorrow = BORROWS.some(b=>b.kode===item.kode);
+  let warn = '';
+  if(usedInIncoming||usedInOutgoing||usedInBorrow){
+    warn = `<div class="badge badge-warn" style="display:block;margin-top:10px;padding:10px;">⚠️ Barang ini punya riwayat transaksi (masuk/keluar/peminjaman). Riwayat lama akan tetap ada tapi akan tertulis "KODE TIDAK DITEMUKAN" pada laporan.</div>`;
+  }
+  openModal(`
+    <div class="modal-head"><h3>Hapus Barang?</h3><button class="close-x" onclick="closeModal()">✕</button></div>
+    <div class="modal-body">
+      <p>Anda yakin ingin menghapus <strong>${item.d1}</strong> (<span class="code-chip">${item.kode}</span>) dari master data barang? Tindakan ini tidak bisa dibatalkan.</p>
+      ${warn}
+    </div>
+    <div class="modal-foot">
+      <button class="btn" onclick="closeModal()">Batal</button>
+      <button class="btn btn-danger" onclick="deleteItem('${id}')">🗑️ Ya, Hapus</button>
+    </div>
+  `);
+}
+function deleteItem(id){
+  const idx = ITEMS.findIndex(i=>i.id===id);
+  if(idx>-1){ const removed=ITEMS.splice(idx,1)[0]; toast(`🗑️ "${removed.d1}" dihapus dari master data`,'ok'); }
+  closeModal();
+  navigate('barang');
 }
 function saveItem(id){
   const kode=document.getElementById('fKode').value.trim();
@@ -1328,20 +1357,13 @@ function renderLaporan(){
 buildNav();
 navigate('dashboard');
 
-// Daftarkan service worker (untuk mode PWA / bisa "Install" seperti aplikasi asli).
-// Hanya berjalan kalau file ini dibuka lewat server https/http (bukan dibuka langsung dari file://).
 if ('serviceWorker' in navigator && location.protocol.startsWith('http')) {
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('sw.js').catch(()=>{ /* diamkan bila gagal, app tetap jalan normal */ });
+    navigator.serviceWorker.register('sw.js').catch(()=>{});
   });
 }
-
-// Info status koneksi kamera: kamera scan LANGSUNG (getUserMedia) hanya diizinkan browser
-// pada halaman yang dibuka lewat HTTPS (atau localhost). Kalau file ini dibuka langsung
-// dari penyimpanan HP/komputer (file://), tombol "Ambil Foto Barcode" tetap berfungsi normal,
-// tapi "Mulai Kamera Langsung" kemungkinan besar akan ditolak oleh browser.
 if (!window.isSecureContext) {
-  console.warn('Halaman ini tidak berjalan dalam mode aman (HTTPS/localhost). Live camera scan mungkin diblokir browser — gunakan tombol "Ambil Foto Barcode" sebagai gantinya, atau host file ini lewat HTTPS.');
+  console.warn('Halaman ini tidak berjalan dalam mode aman (HTTPS/localhost). Live camera scan mungkin diblokir browser.');
 }
 </script>
 </body>
