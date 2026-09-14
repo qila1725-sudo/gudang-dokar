@@ -840,21 +840,26 @@ function renderBarang(){
       <button class="btn" onclick="exportItemsExcel()">⬇️ Export .xlsx (Format Template)</button>
       <label class="btn" style="margin:0;">⬆️ Import Excel (Format Template)<input type="file" accept=".xlsx,.xls,.csv" style="display:none" onchange="importTemplateExcel(this)"></label>
       <button class="btn" onclick="openQuickScanMode('keluar')">🔍 Cari via Scan</button>
+      <button class="btn btn-danger" id="bulkDeleteBtn" style="display:none;" onclick="confirmBulkDeleteItems()">🗑️ Hapus Terpilih (<span id="bulkDeleteCount">0</span>)</button>
     </div>
     <div class="card">
       <div class="table-wrap"><table>
-        <thead><tr><th>Part No &amp; Barcode</th><th>Deskripsi</th><th>Lemari Ke</th><th>BOX</th><th>Qty Awal</th><th>Stok Akhir</th><th>Harga</th><th>Aksi</th></tr></thead>
+        <thead><tr>
+          <th style="width:34px;"><input type="checkbox" id="selectAllItems" onchange="toggleSelectAllItems(this.checked)"></th>
+          <th>Part No &amp; Barcode</th><th>Deskripsi</th><th>Lemari Ke</th><th>BOX</th><th>Qty Awal</th><th>Stok Akhir</th><th>Harga</th><th>Aksi</th></tr></thead>
         <tbody id="itemsTbody"></tbody>
       </table></div>
     </div>
   `;
   renderItemsTable();
 }
+let selectedItemIds = new Set();
 function renderItemsTable(){
   const tbody=document.getElementById('itemsTbody');
   tbody.innerHTML = ITEMS.map(i=>{
     const status = i.isTool? '' : (i.stok===0? '<span class="badge badge-danger">Habis</span>' : i.stok<i.stokMin? '<span class="badge badge-warn">Menipis</span>' : '<span class="badge badge-good">Aman</span>');
     return `<tr>
+      <td><input type="checkbox" class="item-select" data-id="${i.id}" ${selectedItemIds.has(i.id)?'checked':''} onchange="toggleSelectItem('${i.id}', this.checked)"></td>
       <td><span class="code-chip">${i.kode}</span></td>
       <td><div class="desc-primary">${i.d1}</div><div class="desc-secondary">${i.d2||''}</div></td>
       <td>${i.lemariKe||'-'}</td>
@@ -868,7 +873,61 @@ function renderItemsTable(){
         <button class="btn btn-sm btn-danger" onclick="confirmDeleteItem('${i.id}')">🗑️ Hapus</button>
       </td>
     </tr>`;
-  }).join('') || `<tr><td colspan="8" class="empty">Belum ada data barang</td></tr>`;
+  }).join('') || `<tr><td colspan="9" class="empty">Belum ada data barang</td></tr>`;
+  updateBulkDeleteBar();
+}
+function toggleSelectItem(id, checked){
+  if(checked) selectedItemIds.add(id); else selectedItemIds.delete(id);
+  const all = ITEMS.length>0 && ITEMS.every(i=>selectedItemIds.has(i.id));
+  const selAll = document.getElementById('selectAllItems');
+  if(selAll) selAll.checked = all;
+  updateBulkDeleteBar();
+}
+function toggleSelectAllItems(checked){
+  selectedItemIds = new Set(checked ? ITEMS.map(i=>i.id) : []);
+  document.querySelectorAll('.item-select').forEach(cb=>cb.checked=checked);
+  updateBulkDeleteBar();
+}
+function updateBulkDeleteBar(){
+  const btn=document.getElementById('bulkDeleteBtn');
+  const countEl=document.getElementById('bulkDeleteCount');
+  if(!btn) return;
+  const n=selectedItemIds.size;
+  if(countEl) countEl.textContent=n;
+  btn.style.display = n>0 ? 'inline-flex' : 'none';
+}
+function confirmBulkDeleteItems(){
+  const ids=[...selectedItemIds];
+  if(!ids.length) return;
+  const items = ITEMS.filter(i=>ids.includes(i.id));
+  const usedAny = items.some(item => INCOMING.some(tr=>tr.items.some(li=>li.kode===item.kode)) || OUTGOING.some(tr=>tr.items.some(li=>li.kode===item.kode)) || BORROWS.some(b=>b.kode===item.kode));
+  let warn='';
+  if(usedAny){
+    warn = `<div class="badge badge-warn" style="display:block;margin-top:10px;padding:10px;">⚠️ Sebagian barang punya riwayat transaksi (masuk/keluar/peminjaman). Riwayat lama akan tetap ada tapi akan tertulis "KODE TIDAK DITEMUKAN" pada laporan.</div>`;
+  }
+  openModal(`
+    <div class="modal-head"><h3>Hapus ${ids.length} Barang Terpilih?</h3><button class="close-x" onclick="closeModal()">✕</button></div>
+    <div class="modal-body">
+      <p>Anda yakin ingin menghapus <strong>${ids.length} item</strong> berikut dari master data barang? Tindakan ini tidak bisa dibatalkan.</p>
+      <ul style="margin:8px 0 0; padding-left:18px; max-height:220px; overflow-y:auto;">
+        ${items.map(i=>`<li style="margin-bottom:4px;"><strong>${i.d1}</strong> <span class="code-chip">${i.kode}</span></li>`).join('')}
+      </ul>
+      ${warn}
+    </div>
+    <div class="modal-foot">
+      <button class="btn" onclick="closeModal()">Batal</button>
+      <button class="btn btn-danger" onclick="bulkDeleteItems()">🗑️ Ya, Hapus Semua</button>
+    </div>
+  `);
+}
+function bulkDeleteItems(){
+  const ids=new Set(selectedItemIds);
+  const n=ids.size;
+  ITEMS = ITEMS.filter(i=>!ids.has(i.id));
+  selectedItemIds = new Set();
+  toast(`🗑️ ${n} barang dihapus dari master data`,'ok');
+  closeModal();
+  navigate('barang');
 }
 function openItemModal(id){
   const item = id ? ITEMS.find(i=>i.id===id) : null;
